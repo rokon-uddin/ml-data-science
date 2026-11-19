@@ -1,0 +1,7 @@
+models/
+.DS_Store
+data/traffic-signs/*.p
+data/cifar-10-python.tar.gz
+data/bluebook-for-bulldozers/
+data/stanford-dogs/
+.ipynb_checkpoints/

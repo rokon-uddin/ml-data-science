@@ -1,18 +1,25 @@
-# Machine Learning and Data Science, From Data to Deployed Model
+# Machine Learning and Data Science, From First Principles to Real Projects
 
 Most people meet machine learning through the algorithms: random forests, neural networks, gradient descent. But once
 you build a few real projects, you notice where the time actually goes. It goes into understanding a problem well enough
 to frame it, getting data into a usable shape, choosing a way to measure success, and evaluating models honestly enough
-that the numbers mean something.
+that the numbers mean something. And every project fails in its own instructive way: labels that are imbalanced, a
+scaler that has seen the test set, files that contain the same rows twice, a forecast asked for 365 periods of monthly
+data.
 
-This post is my attempt to put the whole workflow in one place. It starts with what machine learning is and a framework
-for approaching any project, moves through the core Python tools (pandas, NumPy, Matplotlib, scikit-learn), and then
-puts them to work on two complete projects: predicting heart disease and predicting bulldozer auction prices. It ends with
-deep learning and transfer learning, where we build an image classifier with TensorFlow and Keras.
+This post puts the whole journey in one place. It starts with what machine learning is and a framework for approaching
+any project, works through the core Python tools (pandas, NumPy, Matplotlib, scikit-learn), and then applies them to
+eleven complete projects:
+
+- **classic machine learning**: heart disease (classification), a spam filter and a review classifier with Naive Bayes,
+  and a movie recommender;
+- **time**: bulldozer auction prices with date features, and Prophet forecasts of Chicago crime and avocado prices;
+- **deep learning**: a neural network built up from a single neuron, convolutional networks for CIFAR-10 objects and
+  German traffic signs, and a dog-breed classifier with transfer learning.
 
 Everything runs on current library versions, and the outputs come from actually running the code. Many older tutorials
-break on today's APIs, so I've flagged those spots as I go. There's a companion Jupyter notebook with exactly the same
-content if you'd rather run things as you read.
+break on today's APIs, so I've marked those spots with **Watch out** notes and collected them in an old-to-new API table
+at the end. Five companion Jupyter notebooks, one per part, have exactly the same content.
 
 Data cleaning and feature preparation get a much deeper treatment in my
 [Data Preparation for Machine Learning reference](https://github.com/rokon-uddin/data-preparation-reference), so this post
@@ -22,57 +29,109 @@ links there instead of repeating it.
 
 | Section | What you'll learn |
 |---|---|
-| [Setup](#setup) | Install, datasets, shared code |
+| [Setup](#setup) | Install, notebooks, datasets |
+| **Foundations** | `01-Foundations.ipynb` |
 | [1. How Machine Learning Works](#1-how-machine-learning-works) | ML vs. normal programming, AI/ML/deep learning, problem types |
-| [2. A Framework for Any Machine Learning Project](#2-a-framework-for-any-machine-learning-project) | Six steps, train/validation/test, over- and underfitting |
+| [2. A Framework for Any Machine Learning Project](#2-a-framework-for-any-machine-learning-project) | Six steps, splits, over- and underfitting, the eleven projects |
 | [3. Setting Up a Workspace](#3-setting-up-a-workspace) | conda environments and Jupyter |
+| **Python Tools** | `02-Python-Tools.ipynb` |
 | [4. Exploring Data with pandas](#4-exploring-data-with-pandas) | Load, describe, filter, clean and reshape tables |
 | [5. Arrays and Maths with NumPy](#5-arrays-and-maths-with-numpy) | Arrays, broadcasting, aggregation, dot products, images as arrays |
 | [6. Visualizing Data with Matplotlib](#6-visualizing-data-with-matplotlib) | Figures and axes, core plot types, plotting from pandas |
-| [7. Building Models with scikit-learn](#7-building-models-with-scikit-learn) | Prepare data, fit, evaluate, tune, save; pipelines |
-| [8. Worked Example: Predicting Heart Disease](#8-worked-example-predicting-heart-disease) | End-to-end classification project |
-| [9. Worked Example: Predicting Bulldozer Prices](#9-worked-example-predicting-bulldozer-prices) | End-to-end time-series regression project |
-| [10. Deep Learning and Transfer Learning](#10-deep-learning-and-transfer-learning) | Image classifier with TensorFlow, Keras and a pretrained network |
-| [Reference](#reference) | Master cheatsheet, glossary, further reading |
+| [7. Building Models with scikit-learn](#7-building-models-with-scikit-learn) | Prepare data, fit, evaluate, tune, save; metrics; pipelines |
+| **Classic Machine Learning Projects** | `03-Classic-ML-Projects.ipynb` |
+| [8. Project: Predicting Heart Disease](#8-project-predicting-heart-disease) | Baselines, tuning, ROC, feature importance |
+| [9. Naive Bayes and Turning Text into Numbers](#9-naive-bayes-and-turning-text-into-numbers) | Bayes' theorem, text cleaning, bag of words, TF-IDF |
+| [10. Project: Filtering Spam E-mails](#10-project-filtering-spam-e-mails) | Leak-free text pipeline, top spam words |
+| [11. Project: Classifying Yelp Reviews](#11-project-classifying-yelp-reviews) | Imbalanced text classes, ComplementNB |
+| [12. Project: A Movie Recommender from Ratings](#12-project-a-movie-recommender-from-ratings) | Item-based collaborative filtering, popularity bias |
+| **Learning from Time** | `04-Time-Series.ipynb` |
+| [13. Project: Predicting Bulldozer Prices](#13-project-predicting-bulldozer-prices) | Date features, splitting by time, gradient boosting |
+| [14. Forecasting Time Series with Prophet](#14-forecasting-time-series-with-prophet) | Trend, seasonality and changepoints |
+| [15. Project: Forecasting Chicago Crime](#15-project-forecasting-chicago-crime) | Aggregating 1.9 GB, data gaps, holdout MAPE, components |
+| [16. Project: Forecasting Avocado Prices](#16-project-forecasting-avocado-prices) | One series at a time, baselines, regional forecasts |
+| **Deep Learning** | `05-Deep-Learning.ipynb` |
+| [17. Neural Networks from One Neuron Up](#17-neural-networks-from-one-neuron-up) | Neurons, activations, layers, backpropagation by hand |
+| [18. Project: Predicting Car Purchase Amounts](#18-project-predicting-car-purchase-amounts) | Dense network for regression, scaling, a linear baseline |
+| [19. How Convolutional Neural Networks See](#19-how-convolutional-neural-networks-see) | Convolution, ReLU, pooling, dropout |
+| [20. Project: Classifying CIFAR-10 Images](#20-project-classifying-cifar-10-images) | CNN for 10 classes, confusion matrix, saving, augmentation |
+| [21. Project: Recognising Traffic Signs with LeNet](#21-project-recognising-traffic-signs-with-lenet) | LeNet-5 on 43 sign classes, error analysis |
+| [22. Project: Recognising Dog Breeds with Transfer Learning](#22-project-recognising-dog-breeds-with-transfer-learning) | Pretrained EfficientNetV2, tf.data, predictions |
+| [Reference](#reference) | Master cheatsheet, old-to-new API table, glossary, further reading |
 
 <a id="setup"></a>
 
 ## Setup
 
 ```bash
-pip install "scikit-learn>=1.6" pandas numpy matplotlib seaborn pillow tensorflow jupyterlab
+pip install "scikit-learn>=1.6" pandas numpy matplotlib seaborn pillow tensorflow keras prophet jupyterlab
 ```
 
-The small datasets are in the `data/` folder next to this file. The bulldozer data (72 MB) and the Stanford Dogs images
-(~750 MB) are downloaded by the code that needs them.
+| Notebook | Sections |
+|---|---|
+| `01-Foundations.ipynb` | 1–3: how machine learning works, the project framework, workspace |
+| `02-Python-Tools.ipynb` | 4–7: pandas, NumPy, Matplotlib, scikit-learn |
+| `03-Classic-ML-Projects.ipynb` | 8–12: heart disease, Naive Bayes, spam, Yelp, recommender |
+| `04-Time-Series.ipynb` | 13–16: bulldozer prices, Prophet, Chicago crime, avocado prices |
+| `05-Deep-Learning.ipynb` | 17–22 and Reference: neural networks, car purchases, CNNs, CIFAR-10, traffic signs, dog breeds |
+
+Each notebook starts with the same setup cell and runs on its own.
 
 | Dataset | Where | Used for |
 |---|---|---|
 | Car sales (10 and 1,000 rows) | `data/car-sales*.csv` | pandas, Matplotlib, scikit-learn |
-| Heart disease (303 patients, UCI Cleveland data) | `data/heart-disease.csv` | Matplotlib, scikit-learn, classification project |
-| Dog photos | `data/dog-photos/` | NumPy, image classifier |
+| Heart disease (303 patients, UCI Cleveland data) | `data/heart-disease.csv` | scikit-learn, classification project |
 | California housing | `fetch_california_housing()` | scikit-learn regression |
-| Blue Book for Bulldozers (Kaggle) | downloaded to `data/bluebook-for-bulldozers/` | regression project |
-| Stanford Dogs (120 breeds) | downloaded to `data/stanford-dogs/` | image classifier |
+| Spam e-mails (5,728) | `data/emails.csv` | Naive Bayes |
+| Yelp reviews (10,000) | `data/yelp.csv` | Naive Bayes |
+| MovieLens 100k ratings | `data/movielens/` | Recommender |
+| Blue Book for Bulldozers | downloaded to `data/bluebook-for-bulldozers/` | Time-ordered regression |
+| Chicago crimes 2001–2017, daily counts by type | `data/chicago/` | Prophet |
+| US avocado prices 2015–2018 | `data/avocado.csv` | Prophet |
+| Car purchasing (500 customers) | `data/car-purchasing.csv` | Neural network regression |
+| CIFAR-10 (60,000 images, 10 classes) | downloaded by Keras, or `data/cifar-10-python.tar.gz` | CNN |
+| German Traffic Sign Recognition Benchmark | `data/traffic-signs/{train,valid,test}.p` (not included) | LeNet |
+| Dog photos and Stanford Dogs (120 breeds) | `data/dog-photos/`, downloaded to `data/stanford-dogs/` | NumPy, transfer learning |
 
-Versions used here: Python 3.13, pandas 3.0, NumPy 2.5, scikit-learn 1.9, Matplotlib 3.11, TensorFlow 2.21 with Keras 3.
+A few datasets need a note:
 
-Every example below uses this setup block. In the notebook, run it first.
+- **Downloads.** The bulldozer data (72 MB), CIFAR-10 (~170 MB) and Stanford Dogs (~750 MB) are fetched by the code
+  that needs them. If CIFAR-10 or Stanford Dogs can't be downloaded, the code falls back to a small synthetic stand-in so
+  every cell still runs; the text says where that happened.
+- **Traffic signs.** The pickled train/validation/test splits are about 160 MB, so they aren't in this repository. Put
+  `train.p`, `valid.p` and `test.p` in `data/traffic-signs/`. Each is a dict with `features` (N×32×32×3 uint8 images) and
+  `labels`.
+- **Chicago crimes.** The raw export is four CSVs totalling 1.9 GB. I aggregated them into daily counts per crime type
+  (3.7 MB). The script that builds the aggregate is in the [Chicago project](#15-project-forecasting-chicago-crime).
+
+Versions used here: Python 3.13, pandas 3.0, NumPy 2.5, scikit-learn 1.9, Matplotlib 3.11, seaborn 0.13, TensorFlow 2.21
+with Keras 3 and Prophet 1.5. Everything ran on a 2-core CPU without a GPU.
+
+This is the setup cell at the top of every notebook:
 
 ```python
 # Shared setup: imports and paths used throughout. Run this cell first.
+import os
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")      # keep TensorFlow's start-up logs quiet
 from pathlib import Path
-import warnings
+import logging, warnings
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", message="(Degrees of freedom|divide by zero|invalid value)")  # sparse correlations
+logging.getLogger("cmdstanpy").setLevel(logging.WARNING)  # Prophet's backend is chatty
+logging.getLogger("tensorflow").setLevel(logging.ERROR)
 DATA = Path("data")
-IMAGES = Path("images")                 # animations are written here
-IMAGES.mkdir(exist_ok=True)
-np.random.seed(42)                      # reproducible results for the classic np.random API
+IMAGES = Path("images")                                   # animations are written here
+MODELS = Path("models")                                   # saved models
+IMAGES.mkdir(exist_ok=True); MODELS.mkdir(exist_ok=True)
+np.random.seed(42)                                        # for the classic np.random API
+rng = np.random.default_rng(42)                           # for new code
+plt.rcParams.update({"figure.dpi": 80, "axes.spines.top": False, "axes.spines.right": False})
 
 print("pandas", pd.__version__, "| NumPy", np.__version__)
 ```
@@ -186,6 +245,10 @@ flowchart TB
   data.
 - **Data science** is the practice of analysing data to answer questions. Sometimes that involves a model, and sometimes a
   well-chosen chart is enough.
+
+The practical difference between classic machine learning and deep learning is who designs the features. A spam filter
+built with Naive Bayes needs us to turn text into word counts first. A convolutional network takes raw pixels and learns
+edges, textures and shapes on its own, at the cost of needing much more data and compute.
 
 The reason this all took off recently is mostly about data and compute. Businesses went from paper to spreadsheets to
 databases to "big data", and cheap storage and GPUs made it practical to let algorithms find the patterns.
@@ -376,6 +439,26 @@ degree 15: train MSE 0.010 | validation MSE 32864.446
 
 ![Underfitting to overfitting as polynomial degree grows](images/under-overfitting.gif)
 
+<a id="the-projects-in-this-post"></a>
+
+### The Projects in This Post
+
+Every project later in this post follows these six steps. Here they are side by side, with the lesson each one adds.
+
+| Project | Data | Problem | Model | Main lesson |
+|---|---|---|---|---|
+| Heart disease | Table, 303 patients | Binary classification | Logistic regression, KNN, random forest | Baselines, tuning, metrics beyond accuracy |
+| Spam filter | E-mail text | Binary classification | Multinomial Naive Bayes | Bag of words, pipelines avoid leakage |
+| Yelp reviews | Review text | Binary classification | Naive Bayes | Imbalance, per-class recall |
+| Movie recommender | User × movie ratings | Ranking | Item-item correlation | Popularity bias, minimum overlap |
+| Bulldozer prices | Table, 400,000 auctions | Regression over time | Random forest, gradient boosting | Date features, splitting by time |
+| Chicago crime | Daily counts | Forecasting | Prophet | Resampling, data gaps, seasonality |
+| Avocado prices | Weekly prices × 54 regions | Forecasting | Prophet | One series at a time, naive baselines |
+| Car purchase amount | Table, 500 rows | Regression | Small dense network | Scale after splitting; a linear baseline can win |
+| CIFAR-10 | 32×32 colour images | 10-class classification | CNN | Convolutions, dropout, augmentation, saving models |
+| Traffic signs | 32×32 images | 43-class classification | LeNet-5 | Grayscale, normalisation, error analysis |
+| Dog breeds | Photos | 120-class classification | Pretrained EfficientNetV2 | Transfer learning, tf.data pipelines |
+
 <a id="cheatsheet-the-framework"></a>
 
 ### Cheatsheet: The Framework
@@ -444,8 +527,8 @@ make notebooks much nicer to work in:
 Output:
 
 ```text
-139 μs ± 8.05 μs per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
-5.85 μs ± 150 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
+145 μs ± 8.39 μs per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+6.14 μs ± 300 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
 ```
 
 <a id="4-exploring-data-with-pandas"></a>
@@ -901,7 +984,9 @@ mask > 5:
 
 ### Images Are Just Arrays
 
-An image is a grid of numbers with shape height × width × channels. `matplotlib.image.imread()` loads one into an array,
+An image is a grid of pixels. A grayscale pixel is one number from 0 (black) to 255 (white); a colour pixel is three
+numbers, one each for red, green and blue. So an image is an array with shape height × width × channels, and a batch of
+images adds a leading dimension: `(N, height, width, 3)`. `matplotlib.image.imread()` loads one into an array,
 which is the first step of any computer-vision pipeline.
 
 **Watch out:** the value range depends on the file format. JPEG files load as integers 0–255 (`uint8`) with 3 channels
@@ -914,7 +999,12 @@ from matplotlib.image import imread
 dog = imread(DATA / "dog-photos" / "golden-retriever.jpeg")
 print(type(dog), dog.shape, dog.dtype, "min/max:", dog.min(), dog.max())
 print("top-left pixel (R, G, B):", dog[0, 0])
-plt.imshow(dog); plt.axis("off"); plt.show()
+fig, axes = plt.subplots(1, 4, figsize=(12, 2.8))
+axes[0].imshow(dog); axes[0].set_title(f"image {dog.shape}")
+for ax, c, name in zip(axes[1:], range(3), ["red", "green", "blue"]):
+    ax.imshow(dog[..., c], cmap="gray", vmin=0, vmax=255); ax.set_title(f"{name} channel")
+for ax in axes: ax.axis("off")
+plt.tight_layout(); plt.show()
 ```
 
 Output:
@@ -1925,9 +2015,9 @@ dump(model, "model.joblib"); model = load("model.joblib")
 | `plot_roc_curve`, `plot_confusion_matrix` | `RocCurveDisplay`, `ConfusionMatrixDisplay` |
 | `max_features="auto"` | `"sqrt"`, `1.0` |
 
-<a id="8-worked-example-predicting-heart-disease"></a>
+<a id="8-project-predicting-heart-disease"></a>
 
-## 8. Worked Example: Predicting Heart Disease
+## 8. Project: Predicting Heart Disease
 
 Time to put the framework and the scikit-learn workflow together on one question: *given a patient's clinical
 measurements, can we predict whether they have heart disease?*
@@ -2265,9 +2355,782 @@ RocCurveDisplay.from_estimator(clf, X_test, y_test); classification_report(y_tes
 cross_val_score(clf, X, y, cv=5, scoring="recall"); pd.Series(clf.coef_[0], index=X.columns)
 ```
 
-<a id="9-worked-example-predicting-bulldozer-prices"></a>
+<a id="9-naive-bayes-and-turning-text-into-numbers"></a>
 
-## 9. Worked Example: Predicting Bulldozer Prices
+## 9. Naive Bayes and Turning Text into Numbers
+
+The two text projects use Naive Bayes, a classifier that's over 60 years old and still a strong first choice for text:
+it trains in a fraction of a second, needs little data, and is easy to interpret. First the probability behind it, then
+how to make text something a model can read.
+
+<a id="bayes-theorem-with-a-picture"></a>
+
+### Bayes' Theorem with a Picture
+
+Imagine a bank classifying customers as ready to retire or not from two features, age and savings. We have 60 past
+customers: 40 who retired (blue) and 20 who didn't (red). A new customer arrives, `X`. Which class is more likely?
+
+Bayes' theorem combines three ingredients into the **posterior** probability of each class given the data:
+
+$$P(\text{class} \mid X) = \frac{P(X \mid \text{class}) \cdot P(\text{class})}{P(X)}$$
+
+- **Prior** $P(\text{class})$: before looking at `X`, how common is each class? 40/60 blue, 20/60 red.
+- **Likelihood** $P(X \mid \text{class})$: how typical are customers like `X` within each class? Draw a circle around
+  `X` and count the neighbours of each colour, relative to that class's size.
+- **Marginal likelihood** $P(X)$: how common are customers like `X` at all (all points in the circle / 60). It's the same
+  for every class, so it doesn't change which class wins.
+
+The class with the larger posterior wins.
+
+```python
+g = np.random.default_rng(3)
+blue = np.column_stack([g.normal(60, 6, 40), g.normal(450, 90, 40)])    # retired: older, more savings
+red = np.column_stack([g.normal(42, 7, 20), g.normal(200, 80, 20)])     # not retired
+X_new, radius = np.array([50, 260]), 1.0                                # radius in standardised units
+
+pts = np.vstack([blue, red]); mu, sd = pts.mean(0), pts.std(0)
+def near(points): return (np.hypot(*((points - X_new) / sd).T) < radius).sum()
+
+n_blue, n_red = near(blue), near(red)
+prior = {"blue": 40 / 60, "red": 20 / 60}
+likelihood = {"blue": n_blue / 40, "red": n_red / 20}
+marginal = (n_blue + n_red) / 60
+for c in ("blue", "red"):
+    post = likelihood[c] * prior[c] / marginal
+    print(f"{c:4}: prior {prior[c]:.2f} x likelihood {likelihood[c]:.3f} / marginal {marginal:.3f} = posterior {post:.2f}")
+```
+
+Output:
+
+```text
+blue: prior 0.67 x likelihood 0.150 / marginal 0.233 = posterior 0.43
+red : prior 0.33 x likelihood 0.400 / marginal 0.233 = posterior 0.57
+```
+
+```python
+from sklearn.naive_bayes import GaussianNB
+
+X_pts = np.vstack([blue, red]); y_pts = np.r_[np.ones(40), np.zeros(20)]
+gnb = GaussianNB().fit(X_pts, y_pts)
+xx, yy = np.meshgrid(np.linspace(25, 80, 200), np.linspace(-50, 700, 200))
+zz = gnb.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1].reshape(xx.shape)
+
+fig, ax = plt.subplots(figsize=(6, 4))
+ax.contourf(xx, yy, zz, levels=[0, 0.5, 1], colors=["#fbd5d5", "#d5e3fb"], alpha=0.8)
+ax.scatter(*blue.T, color="steelblue", s=18, label="retired")
+ax.scatter(*red.T, color="crimson", s=18, label="not retired")
+ax.add_patch(plt.matplotlib.patches.Ellipse(X_new, 2 * radius * sd[0], 2 * radius * sd[1],
+                                            fill=False, ls="--", color="black"))
+ax.scatter(*X_new, marker="*", s=250, color="gold", edgecolor="black", zorder=5, label="new customer")
+ax.set_xlabel("age"); ax.set_ylabel("savings ($k)"); ax.legend(fontsize=8, loc="upper left")
+ax.set_title("Gaussian Naive Bayes decision regions"); plt.show()
+print("GaussianNB P(retired | X) =", gnb.predict_proba([X_new])[0, 1].round(2))
+```
+
+Output:
+
+```text
+GaussianNB P(retired | X) = 0.19
+```
+
+![Bayes' Theorem with a Picture](images/bayes-theorem-with-a-picture-1.png)
+
+Blue has the larger prior (twice as many retired customers), but `X` sits among the red points, and the likelihood
+outweighs the prior: `X` is classified as not ready to retire. The Gaussian version in scikit-learn, which models each
+feature with a bell curve per class instead of counting neighbours, agrees.
+
+The "naive" part is an assumption: features are treated as independent within each class, so the likelihood of `X` is
+just the product of the likelihoods of its individual features. That's rarely true (age and savings are clearly
+related), but the ranking of classes usually survives, and the assumption is what makes the model so fast. With
+thousands of word features it's the only reason the model is tractable at all.
+
+scikit-learn has three common variants:
+
+| Variant | Feature type | Typical use |
+|---|---|---|
+| `GaussianNB` | Continuous, roughly normal | Measurements like age, savings |
+| `MultinomialNB` | Counts | Word counts in documents |
+| `BernoulliNB` | Binary present/absent | Whether a word appears |
+
+<a id="cleaning-text-punctuation-and-stop-words"></a>
+
+### Cleaning Text: Punctuation and Stop Words
+
+Before counting words, strip what carries no signal:
+
+- **Punctuation**: `string.punctuation` lists the ASCII punctuation characters.
+- **Stop words**: very common words such as "the", "is", "and" that appear in every document. scikit-learn ships a list
+  of 318 English stop words; NLTK's `stopwords.words("english")` is a popular alternative (it needs a one-off
+  `nltk.download("stopwords")`).
+
+```python
+import string
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+
+def clean_text(message):
+    """Lowercase, remove punctuation and stop words, return a list of tokens."""
+    no_punct = "".join(ch for ch in message.lower() if ch not in string.punctuation)
+    return [w for w in no_punct.split() if w not in ENGLISH_STOP_WORDS and w.isprintable()]
+
+sample = "Hello Mr. Future, I am so happy to be learning AI now!!"
+print(string.punctuation)
+print(clean_text(sample))
+```
+
+Output:
+
+```text
+!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
+['hello', 'mr', 'future', 'happy', 'learning', 'ai']
+```
+
+<a id="bag-of-words-countvectorizer-and-tf-idf"></a>
+
+### Bag of Words: CountVectorizer and TF-IDF
+
+A **bag of words** represents each document as a vector of word counts over a fixed vocabulary. Order is thrown away;
+only which words occur, and how often, survives. `CountVectorizer` learns the vocabulary in `fit` and produces a sparse
+matrix (mostly zeros) in `transform`.
+
+```mermaid
+flowchart LR
+    A["Raw text"] --> B["Clean:<br/>lowercase, punctuation,<br/>stop words"]
+    B --> C["Tokens"]
+    C --> D["CountVectorizer:<br/>vocabulary + counts"]
+    D --> E["Sparse matrix<br/>documents × words"]
+    E --> F["MultinomialNB"]
+```
+
+**TF-IDF** (term frequency × inverse document frequency) re-weights the counts: words frequent in one document but
+rare across the collection get boosted, words that appear everywhere get damped.
+
+**Watch out:** `vectorizer.get_feature_names()` was removed in scikit-learn 1.2. Use `get_feature_names_out()`.
+
+```python
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+
+docs = ["This is the first document.", "This document is the second document.",
+        "And this is the third one.", "Is this the first document?"]
+cv = CountVectorizer()
+counts = cv.fit_transform(docs)
+print(pd.DataFrame(counts.toarray(), columns=cv.get_feature_names_out()).to_string())
+
+tfidf = TfidfVectorizer().fit(docs)
+print("\nTF-IDF weights, document 2:")
+print(pd.Series(tfidf.transform(docs[1:2]).toarray()[0], tfidf.get_feature_names_out()).round(2)
+      .loc[lambda s: s > 0].to_string())
+```
+
+Output:
+
+```text
+   and  document  first  is  one  second  the  third  this
+0    0         1      1   1    0       0    1      0     1
+1    0         2      0   1    0       1    1      0     1
+2    1         0      0   1    1       0    1      1     1
+...
+```
+
+In document 2, "second" (unique to it) gets the highest TF-IDF weight and "document" (twice, but common) comes next,
+while "is", "the" and "this" (in every document) are pushed down.
+
+<a id="10-project-filtering-spam-e-mails"></a>
+
+## 10. Project: Filtering Spam E-mails
+
+A spam filter reads an e-mail and decides whether it's spam (1) or legitimate "ham" (0). The dataset has 5,728 e-mails
+with their subject lines and bodies.
+
+<a id="exploring-the-e-mails"></a>
+
+### Exploring the E-mails
+
+Every e-mail starts with its subject line. A quick check for duplicates, the class balance, and lengths.
+
+```python
+spam_df = pd.read_csv(DATA / "emails.csv")
+print(spam_df.shape, "| duplicates:", spam_df.duplicated().sum())
+spam_df = spam_df.drop_duplicates().reset_index(drop=True)
+spam_df["length"] = spam_df["text"].str.len()
+
+print(spam_df["spam"].value_counts(normalize=True).rename({0: "ham", 1: "spam"}).round(3).to_string())
+print(spam_df.groupby("spam")["length"].describe()[["mean", "50%", "max"]].round(0).to_string())
+print("\n", spam_df.loc[spam_df["spam"] == 1, "text"].iloc[0][:160], "...")
+```
+
+Output:
+
+```text
+(5728, 2) | duplicates: 33
+spam
+ham     0.76
+spam    0.24
+...
+```
+
+```python
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 3))
+sns.countplot(x=spam_df["spam"].map({0: "ham", 1: "spam"}), ax=ax1, color="steelblue"); ax1.set_xlabel("")
+ax1.set_title("Class balance")
+bins = np.logspace(1, 4.7, 50)
+for label, name, color in ((0, "ham", "steelblue"), (1, "spam", "crimson")):
+    ax2.hist(spam_df.loc[spam_df["spam"] == label, "length"], bins=bins, alpha=0.6, label=name, color=color)
+ax2.set_xscale("log"); ax2.set_xlabel("characters (log scale)"); ax2.set_title("E-mail length"); ax2.legend()
+plt.tight_layout(); plt.show()
+```
+
+![Exploring the E-mails](images/exploring-the-e-mails-1.png)
+
+About a quarter of the e-mails are spam, and the two length distributions overlap heavily, so length alone won't
+separate them. The words will.
+
+<a id="a-pipeline-that-cant-leak"></a>
+
+### A Pipeline That Can't Leak
+
+The vectorizer learns a vocabulary, so it's a fitted step just like an imputer or scaler, and the
+[pipeline rule from section 7](#pipelines-preprocessing-and-model-as-one-object) applies: fitting it on all e-mails
+before splitting lets words that appear only in test e-mails into the training features.
+
+**Watch out:** a common version of this project fits `CountVectorizer` on the whole dataset and even trains the first
+model on all of it before splitting. Put the vectorizer and the model in one `Pipeline` and split the raw text first;
+then `fit` touches only training data.
+
+`stratify=y` keeps the spam proportion identical in both splits.
+
+```python
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import make_pipeline
+from sklearn.metrics import classification_report, confusion_matrix
+
+X_train, X_test, y_train, y_test = train_test_split(
+    spam_df["text"], spam_df["spam"], test_size=0.2, stratify=spam_df["spam"], random_state=42)
+
+spam_model = make_pipeline(CountVectorizer(analyzer=clean_text), MultinomialNB())
+spam_model.fit(X_train, y_train)
+vocab = spam_model.named_steps["countvectorizer"].get_feature_names_out()
+print(f"vocabulary: {len(vocab):,} words | sample: {list(vocab[5000:5006])}")
+
+y_pred = spam_model.predict(X_test)
+print(classification_report(y_test, y_pred, target_names=["ham", "spam"], digits=3))
+```
+
+Output:
+
+```text
+vocabulary: 33,451 words | sample: ['atlantic', 'atlanticasp', 'atlas', 'atleast', 'atlons', 'atm']
+              precision    recall  f1-score   support
+
+         ham      0.998     0.993     0.995       865
+...
+```
+
+```python
+fig, axes = plt.subplots(1, 2, figsize=(8, 3.2))
+for ax, (X_, y_, name) in zip(axes, [(X_train, y_train, "training"), (X_test, y_test, "test")]):
+    sns.heatmap(confusion_matrix(y_, spam_model.predict(X_)), annot=True, fmt="d", cmap="Blues", cbar=False,
+                xticklabels=["ham", "spam"], yticklabels=["ham", "spam"], ax=ax)
+    ax.set_title(f"{name} set"); ax.set_xlabel("predicted"); ax.set_ylabel("true")
+plt.tight_layout(); plt.show()
+```
+
+![A Pipeline That Can't Leak](images/a-pipeline-that-cant-leak-1.png)
+
+In spam terms ([precision and recall are defined in section 7](#classification-metrics-precision-recall-and-f1)),
+a false positive sends a real e-mail to the junk folder and a false negative lets spam through. For a spam filter,
+precision on spam usually matters more: users forgive a stray spam in the inbox more readily than a lost
+invoice.
+
+<a id="what-the-model-learned"></a>
+
+### What the Model Learned
+
+Multinomial Naive Bayes stores, for each class, the (smoothed) log probability of every word. The words with the
+largest difference between the spam and ham log probabilities are the model's strongest evidence.
+
+```python
+nb = spam_model.named_steps["multinomialnb"]
+log_ratio = nb.feature_log_prob_[1] - nb.feature_log_prob_[0]
+order = np.argsort(log_ratio)
+print("most spammy:", ", ".join(vocab[order[-12:]][::-1]))
+print("most hammy: ", ", ".join(vocab[order[:12]]))
+```
+
+Output:
+
+```text
+most spammy: viagra, projecthoneypot, stationery, squirrelmail, sex, paypal, oem, andmanyother, oniine, dose, mailwisconsin, qmail
+most hammy:  enron, ect, kaminski, vince, crenshaw, 713, stinson, ees, kevin, gibner, hou, shirley
+```
+
+The ham side is full of names and words from one company's internal e-mail (this dataset comes from Enron's
+mailboxes), which is a reminder that a filter learns the mailbox it was trained on. It would need retraining for a
+different user.
+
+<a id="trying-tf-idf-and-scoring-new-e-mails"></a>
+
+### Trying TF-IDF and Scoring New E-mails
+
+Does re-weighting the counts with TF-IDF help? And because the vectorizer lives inside the pipeline, new e-mails go in as plain strings.
+
+```python
+from sklearn.feature_extraction.text import TfidfTransformer
+
+spam_tfidf = make_pipeline(CountVectorizer(analyzer=clean_text), TfidfTransformer(), MultinomialNB())
+spam_tfidf.fit(X_train, y_train)
+from sklearn.metrics import f1_score
+for name, mdl in (("counts", spam_model), ("TF-IDF", spam_tfidf)):
+    print(f"{name:7} macro F1 {f1_score(y_test, mdl.predict(X_test), average='macro'):.3f}")
+
+new_mail = ["Free money!!! Claim your prize now, limited offer",
+            "Hi Kim, please let me know if you need any further information. Thanks",
+            "Hello, I am Ryan, I would like to book a hotel in Bali by January 24th"]
+print(spam_model.predict(new_mail), spam_model.predict_proba(new_mail)[:, 1].round(3))
+```
+
+Output:
+
+```text
+counts  macro F1 0.990
+TF-IDF  macro F1 0.833
+[1 0 0] [1. 0. 0.]
+```
+
+TF-IDF doesn't automatically help Multinomial Naive Bayes: the model was designed for raw counts, and TF-IDF can shrink
+the very words that mark spam. Always measure instead of assuming. Because the whole pipeline is one object, scoring
+new e-mails takes raw strings directly.
+
+**Cheatsheet: text classification with scikit-learn**
+
+| Step | Code |
+|---|---|
+| Custom cleaning | `CountVectorizer(analyzer=clean_text)` (function returns a token list) |
+| Built-in cleaning | `CountVectorizer(lowercase=True, stop_words="english")` |
+| No leakage | `make_pipeline(CountVectorizer(...), MultinomialNB())` fitted on training text only |
+| Vocabulary | `vectorizer.get_feature_names_out()` |
+| TF-IDF | `TfidfVectorizer()` or `TfidfTransformer()` after counts |
+| Per-class metrics | `classification_report(y_test, y_pred)` |
+| Top words | `nb.feature_log_prob_[1] - nb.feature_log_prob_[0]` |
+
+#### Exercise 5
+
+Estimate the spam filter's performance more robustly with 5-fold stratified cross-validation on the training set.
+Report the mean and standard deviation of the F1 score for the spam class.
+
+#### Solution 5
+
+*Try it yourself before running this cell.*
+
+<details>
+<summary>Show solution</summary>
+
+```python
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+
+scores = cross_val_score(make_pipeline(CountVectorizer(analyzer=clean_text), MultinomialNB()),
+                         X_train, y_train, cv=StratifiedKFold(5, shuffle=True, random_state=0), scoring="f1")
+print(f"F1 (spam): {scores.mean():.3f} ± {scores.std():.3f}")
+```
+
+Output:
+
+```text
+F1 (spam): 0.980 ± 0.005
+```
+
+</details>
+
+<a id="11-project-classifying-yelp-reviews"></a>
+
+## 11. Project: Classifying Yelp Reviews
+
+Yelp publishes crowd-sourced reviews of businesses, each with a 1–5 star rating. Other users can vote a review "cool",
+"useful" or "funny"; those votes rate the review, not the business. The question: can we tell a 1-star review from a
+5-star one from its text alone?
+
+<a id="exploring-stars-and-review-length"></a>
+
+### Exploring Stars and Review Length
+
+Ten thousand reviews, each with its star rating, the votes from other users, and the text.
+
+```python
+yelp_df = pd.read_csv(DATA / "yelp.csv")
+yelp_df["length"] = yelp_df["text"].str.len()
+print(yelp_df.shape)
+print(yelp_df[["stars", "cool", "useful", "funny", "length"]].describe().loc[["mean", "50%", "max"]].round(1).to_string())
+print("\nshortest review:", repr(yelp_df.loc[yelp_df["length"].idxmin(), "text"]))
+```
+
+Output:
+
+```text
+(10000, 11)
+      stars  cool  useful  funny  length
+mean    3.8   0.9     1.4    0.7   710.7
+50%     4.0   0.0     1.0    0.0   541.5
+...
+```
+
+```python
+fig, ax = plt.subplots(figsize=(5, 2.8))
+sns.countplot(y=yelp_df["stars"], ax=ax, color="steelblue"); ax.set_title("Reviews per star rating"); plt.show()
+
+g = sns.FacetGrid(yelp_df, col="stars", col_wrap=5, height=2, aspect=1.1)
+g.map(plt.hist, "length", bins=25, color="crimson"); g.set_axis_labels("characters", "")
+plt.show()
+```
+
+![Exploring Stars and Review Length](images/exploring-stars-and-review-length-1.png)
+
+![Exploring Stars and Review Length](images/exploring-stars-and-review-length-2.png)
+
+Most reviews are positive: 4 and 5 stars make up two-thirds of the data. Length distributions look similar across
+ratings, with a long tail of essays in every class.
+
+<a id="1-star-vs-5-stars"></a>
+
+### 1 Star vs. 5 Stars
+
+Keeping only the extremes gives a clean binary problem, and an imbalanced one: about 18% of the remaining reviews are
+1-star. Watch the minority class.
+
+```python
+yelp_1_5 = yelp_df[yelp_df["stars"].isin([1, 5])].reset_index(drop=True)
+print(yelp_1_5["stars"].value_counts(normalize=True).round(3).to_string())
+
+X_train, X_test, y_train, y_test = train_test_split(
+    yelp_1_5["text"], yelp_1_5["stars"], test_size=0.2, stratify=yelp_1_5["stars"], random_state=42)
+yelp_model = make_pipeline(CountVectorizer(analyzer=clean_text), MultinomialNB()).fit(X_train, y_train)
+print(classification_report(y_test, yelp_model.predict(X_test), digits=3))
+```
+
+Output:
+
+```text
+stars
+5    0.817
+1    0.183
+              precision    recall  f1-score   support
+...
+```
+
+The headline accuracy is 92%, but look at the 1-star row: only 65% of the 1-star reviews are caught, against 98% of
+the 5-star ones. With
+five times more positive reviews, the prior pulls borderline cases towards 5 stars. If the business goal is to catch
+unhappy customers, that's the number to improve.
+
+<a id="handling-the-imbalance"></a>
+
+### Handling the Imbalance
+
+Two simple options:
+
+- **ComplementNB** estimates each class's word statistics from all the *other* classes, which is more stable when one
+  class is small. It's often better than MultinomialNB on imbalanced text.
+- **Equal priors**: tell Multinomial NB not to use the class frequencies (`fit_prior=False`), so neither class gets a
+  head start.
+
+Balanced accuracy (the mean of per-class recall) is a fairer single number than accuracy here.
+
+```python
+from sklearn.naive_bayes import ComplementNB
+from sklearn.metrics import balanced_accuracy_score, recall_score
+
+candidates = {
+    "MultinomialNB": MultinomialNB(),
+    "MultinomialNB, equal priors": MultinomialNB(fit_prior=False),
+    "ComplementNB": ComplementNB(),
+}
+for name, clf in candidates.items():
+    p = make_pipeline(CountVectorizer(analyzer=clean_text), clf).fit(X_train, y_train).predict(X_test)
+    print(f"{name:29} balanced acc {balanced_accuracy_score(y_test, p):.3f} | "
+          f"1-star recall {recall_score(y_test, p, pos_label=1):.3f}")
+```
+
+Output:
+
+```text
+MultinomialNB                 balanced acc 0.816 | 1-star recall 0.647
+MultinomialNB, equal priors   balanced acc 0.851 | 1-star recall 0.727
+ComplementNB                  balanced acc 0.851 | 1-star recall 0.727
+```
+
+Both changes lift 1-star recall from 0.65 to 0.73 at a small cost in 5-star recall. With exactly two classes they give
+the same predictions, because ComplementNB's main effect in the binary case is to remove the prior's head start. With
+three or more imbalanced classes they differ, and ComplementNB is usually the better default.
+
+```python
+reviews = ["amazing food! highly recommended", "terrible food, made me sick",
+           "the service was slow but the pasta was worth the wait"]
+print(dict(zip(reviews, yelp_model.predict(reviews))))
+```
+
+Output:
+
+```text
+{'amazing food! highly recommended': np.int64(5), 'terrible food, made me sick': np.int64(1), 'the service was slow but the pasta was worth the wait': np.int64(5)}
+```
+
+#### Exercise 6
+
+Use all five star ratings: label 1–2 stars as `negative`, 3 as `neutral` and 4–5 as `positive`. Train a
+`CountVectorizer(analyzer=clean_text)` + `ComplementNB` pipeline and print the classification report. Which class is
+hardest?
+
+#### Solution 6
+
+*Try it yourself before running this cell.*
+
+<details>
+<summary>Show solution</summary>
+
+```python
+sentiment = pd.cut(yelp_df["stars"], bins=[0, 2, 3, 5], labels=["negative", "neutral", "positive"])
+Xa, Xb, ya, yb = train_test_split(yelp_df["text"], sentiment, test_size=0.2, stratify=sentiment, random_state=0)
+three = make_pipeline(CountVectorizer(analyzer=clean_text), ComplementNB()).fit(Xa, ya)
+print(classification_report(yb, three.predict(Xb), digits=3))
+# Neutral is hardest: 3-star reviews mix praise and complaints, so their words overlap both other classes.
+```
+
+Output:
+
+```text
+              precision    recall  f1-score   support
+
+    negative      0.647     0.645     0.646       335
+     neutral      0.264     0.048     0.081       292
+...
+```
+
+</details>
+
+<a id="12-project-a-movie-recommender-from-ratings"></a>
+
+## 12. Project: A Movie Recommender from Ratings
+
+Recommender systems suggest movies, products or songs a user is likely to rate highly, based on past behaviour: "people
+who liked this also liked…". We'll build one from the MovieLens 100k dataset, 100,000 ratings (1–5 stars) from 943 users
+on 1,682 movies. This copy also contains a sample user `0` with three ratings, which is why the counts below say 944.
+
+<a id="collaborative-filtering-user-based-and-item-based"></a>
+
+### Collaborative Filtering: User-Based and Item-Based
+
+**Collaborative filtering** uses only the ratings matrix, with no knowledge of genres or actors. There are two flavours:
+
+- **User-based**: find users whose past ratings resemble yours, and recommend what they liked that you haven't seen.
+- **Item-based**: find movies whose rating patterns resemble the ones you liked. Two movies are similar if the same
+  people tend to rate them the same way.
+
+```mermaid
+flowchart LR
+    subgraph U["User-based"]
+        direction TB
+        u1["You liked A, B"] --> u2["Similar users<br/>also liked A, B"]
+        u2 --> u3["They liked C<br/>→ recommend C"]
+    end
+    subgraph I["Item-based"]
+        direction TB
+        i1["You liked A"] --> i2["Movies whose ratings<br/>correlate with A's"]
+        i2 --> i3["Recommend the<br/>most correlated"]
+    end
+```
+
+Item-based filtering is the more common choice in practice: there are far fewer items than users, item similarities
+change slowly, and they can be precomputed. That's what we build here, using the **Pearson correlation** between two
+movies' rating columns as the similarity.
+
+<a id="loading-and-exploring-ratings"></a>
+
+### Loading and Exploring Ratings
+
+Ratings come as `user_id, item_id, rating, timestamp` rows; a second file maps item ids to titles.
+
+```python
+titles = pd.read_csv(DATA / "movielens" / "movie-titles.csv")
+ratings = pd.read_csv(DATA / "movielens" / "u.data", sep="\t",
+                      names=["user_id", "item_id", "rating", "timestamp"]).drop(columns="timestamp")
+ratings = ratings.merge(titles, on="item_id")
+print(ratings.shape, "| users", ratings["user_id"].nunique(), "| movies", ratings["title"].nunique())
+print(ratings.head(3).to_string(index=False))
+
+stats = ratings.groupby("title")["rating"].agg(["count", "mean"])
+print("\nperfect 5.0 average:", (stats["mean"] == 5).sum(), "movies, with at most",
+      stats.loc[stats["mean"] == 5, "count"].max(), "ratings each")
+print(stats.sort_values("count", ascending=False).head(5).round(2).to_string())
+```
+
+Output:
+
+```text
+(100003, 4) | users 944 | movies 1664
+ user_id  item_id  rating                           title
+       0       50       5                Star Wars (1977)
+       0      172       5 Empire Strikes Back, The (1980)
+...
+```
+
+```python
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(13, 3.2))
+ax1.hist(stats["mean"], bins=50, color="crimson"); ax1.set_title("Average rating per movie")
+ax2.hist(stats["count"], bins=50, color="crimson"); ax2.set_title("Ratings per movie"); ax2.set_yscale("log")
+ax3.scatter(stats["count"], stats["mean"], s=4, alpha=0.4); ax3.set_xlabel("number of ratings")
+ax3.set_ylabel("average rating"); ax3.set_title("Popularity vs. average")
+plt.tight_layout(); plt.show()
+```
+
+![Loading and Exploring Ratings](images/loading-and-exploring-ratings-1.png)
+
+The ten movies with a perfect 5.0 average were rated by three people or fewer, while the most-rated films sit around 3.5
+to 4.5. Averages from tiny samples are noise. The scatter plot makes the point: the extremes (1.0 and 5.0) only occur
+at the far left. Any similarity we compute needs a **minimum number of overlapping ratings** to be trustworthy.
+
+<a id="movies-similar-to-one-movie"></a>
+
+### Movies Similar to One Movie
+
+Pivot the ratings into a user × movie matrix (mostly empty: each user rated about 6% of the movies). Each column is
+one movie's ratings across users. `corrwith` correlates every column with one chosen movie, using only users who rated
+both.
+
+```python
+matrix = ratings.pivot_table(index="user_id", columns="title", values="rating")
+print(matrix.shape, f"| filled: {matrix.notna().mean().mean():.1%}")
+
+def similar_to(title, min_count=80, n=6):
+    corr = matrix.corrwith(matrix[title]).rename("correlation").to_frame().join(stats["count"]).dropna()
+    return corr[corr["count"] >= min_count].sort_values("correlation", ascending=False).head(n)
+
+print(similar_to("Titanic (1997)").round(3).to_string())
+```
+
+Output:
+
+```text
+(944, 1664) | filled: 6.3%
+                                               correlation  count
+title                                                            
+Titanic (1997)                                       1.000    350
+...
+```
+
+The movie itself always comes first with a correlation of 1. Without `min_count`, the top of the list fills with
+obscure films that happen to correlate perfectly with Titanic through two or three shared viewers. Requiring at least 80
+ratings filters those out; the price is that niche movies can never be recommended. That's the classic **popularity
+bias** of correlation-based recommenders.
+
+```python
+print(similar_to("Star Wars (1977)").round(3).to_string())
+```
+
+Output:
+
+```text
+                                                    correlation  count
+title                                                                 
+Star Wars (1977)                                          1.000    584
+Empire Strikes Back, The (1980)                           0.748    368
+...
+```
+
+<a id="recommendations-from-your-own-ratings"></a>
+
+### Recommendations from Your Own Ratings
+
+For a full recommender, precompute the movie × movie correlation matrix once, with `min_periods=80` so pairs with too
+few common raters come out as `NaN`. Then for each movie you rated, take its similarity column, weight it by how much you
+liked that movie, and add everything up.
+
+**Watch out:** two problems in the usual version of this step:
+
+1. `pd.Series().append()` was removed in pandas 2.0. Collect the pieces in a list and `pd.concat` them.
+2. Weighting similarities by the raw rating treats a 1-star rating as a weak *positive* vote, so movies similar to
+   something you hated still climb the list. Centre the rating first (`rating - 3`), so dislikes subtract.
+
+```python
+movie_corr = matrix.corr(method="pearson", min_periods=80)
+my_ratings = pd.read_csv(DATA / "movielens" / "my-ratings.csv")
+print(my_ratings.to_string(index=False))
+
+def recommend(my_ratings, center=None, n=8):
+    pieces = []
+    for title, rating in zip(my_ratings["Movie Name"], my_ratings["Ratings"]):
+        weight = rating if center is None else rating - center
+        pieces.append(movie_corr[title].dropna() * weight)
+    scores = pd.concat(pieces).groupby(level=0).sum()
+    return scores.drop(my_ratings["Movie Name"], errors="ignore").sort_values(ascending=False).head(n)
+
+raw, centred = recommend(my_ratings), recommend(my_ratings, center=3)
+print(pd.DataFrame({"raw ratings as weights": raw.index, "centred ratings": centred.index}).to_string(index=False))
+```
+
+Output:
+
+```text
+      Movie Name  Ratings
+Liar Liar (1997)        5
+Star Wars (1977)        1
+                   raw ratings as weights                    centred ratings
+...
+```
+
+With raw weights, the 1-star rating of Star Wars still adds `+1 × similarity`, so the adventure films Star Wars fans
+love (Indiana Jones, Back to the Future, Top Gun) land in the list of someone who disliked it. Centred weights make the
+dislike count against them, and the list becomes mostly broad comedies close to Liar Liar. Removing the
+movies you've already rated (`drop`) is the other fix most toy recommenders forget.
+
+**Cheatsheet: item-based collaborative filtering**
+
+| Step | Code |
+|---|---|
+| Ratings matrix | `ratings.pivot_table(index="user_id", columns="title", values="rating")` |
+| Popularity stats | `ratings.groupby("title")["rating"].agg(["count", "mean"])` |
+| Similar to one item | `matrix.corrwith(matrix[title])`, then filter on `count` |
+| All item pairs | `matrix.corr(min_periods=80)` |
+| Score a user | `sum((rating - 3) * movie_corr[rated_title])` over rated titles |
+| Clean the list | drop already-rated titles, sort descending |
+
+#### Exercise 7
+
+Build a **user-based** recommendation for user 1. Find the 20 users whose ratings correlate most with user 1's
+(at least 15 movies in common), average their ratings for movies user 1 hasn't seen, keep
+movies rated by at least 5 of those neighbours, and print the top 8.
+
+#### Solution 7
+
+*Try it yourself before running this cell.*
+
+<details>
+<summary>Show solution</summary>
+
+```python
+by_user = matrix.T                                       # movies x users
+me = by_user[1]
+overlap = by_user.notna().astype(int).T @ me.notna().astype(int)
+sims = by_user.corrwith(me)[overlap >= 15].drop(1).nlargest(20)
+neighbours = matrix.loc[sims.index]
+unseen = neighbours.loc[:, me.isna()]
+recs = unseen.mean()[unseen.notna().sum() >= 5].sort_values(ascending=False).head(8)
+print(recs.round(2).to_string())
+```
+
+Output:
+
+```text
+title
+Boot, Das (1981)            4.80
+Schindler's List (1993)     4.80
+Trainspotting (1996)        4.43
+...
+```
+
+</details>
+
+<a id="13-project-predicting-bulldozer-prices"></a>
+
+## 13. Project: Predicting Bulldozer Prices
 
 The second project is regression on time-ordered data, from Kaggle's *Blue Book for Bulldozers* competition: predict the
 auction sale price of a bulldozer from its characteristics and the prices of similar machines in past sales.
@@ -2551,8 +3414,8 @@ Output:
 
 ```text
 Best (randomized, 5 iterations): {'model__n_estimators': np.int64(60), 'model__min_samples_split': np.int64(12), 'model__min_samples_leaf': np.int64(1), 'model__max_features': 1.0, 'model__max_depth': None}
-Ideal random forest: valid RMSLE 0.2464 (42s)
-HistGradientBoosting: valid RMSLE 0.2645 (28s)
+Ideal random forest: valid RMSLE 0.2464 (52s)
+HistGradientBoosting: valid RMSLE 0.2645 (38s)
 ```
 
 <a id="predicting-on-the-test-set"></a>
@@ -2661,14 +3524,14 @@ fiSecondaryDesc       0.075
 
 ![What Drives the Price](images/what-drives-the-price-1.png)
 
-#### Exercise 5
+#### Exercise 8
 
 On the bulldozer data, compare validation RMSLE for three ways of handling the categorical columns, using the date features
 and `RandomForestRegressor(n_jobs=-1, random_state=42, max_samples=10_000)` where a forest is used: `OrdinalEncoder`,
 dropping the categorical columns entirely, and `HistGradientBoostingRegressor(categorical_features="from_dtype")` with
 native categorical support (which allows at most 255 categories per column).
 
-#### Solution 5
+#### Solution 8
 
 *Try it yourself before running this cell.*
 
@@ -2747,19 +3610,1837 @@ RandomForestRegressor(n_jobs=-1, max_samples=10_000)     # fast experiments
 root_mean_squared_log_error(y_valid, preds)               # replaces mean_squared_log_error(..., squared=False)
 ```
 
-<a id="10-deep-learning-and-transfer-learning"></a>
+<a id="14-forecasting-time-series-with-prophet"></a>
 
-## 10. Deep Learning and Transfer Learning
+## 14. Forecasting Time Series with Prophet
 
-Tree ensembles rule structured data, but images, audio and text need a different tool. This section builds an image
-classifier that recognizes dog breeds, using TensorFlow, Keras and **transfer learning**.
+The next two projects forecast the future of a single series: monthly crime counts in Chicago and weekly avocado prices.
+Prophet, an open-source library from Meta, is built for exactly this kind of business series: a few years of daily,
+weekly or monthly observations with trends that bend and strong yearly patterns.
+
+<a id="how-prophet-models-a-series"></a>
+
+### How Prophet Models a Series
+
+Prophet fits an **additive** model: the series is the sum of a few interpretable pieces.
+
+$$y(t) = g(t) + s(t) + h(t) + \varepsilon_t$$
+
+- $g(t)$, the **trend**: a piecewise-linear line whose slope may change at automatically detected **changepoints**.
+- $s(t)$, **seasonality**: yearly and weekly cycles, modelled with Fourier terms (sums of sines and cosines).
+- $h(t)$, **holidays and events**: optional one-off effects you supply.
+- $\varepsilon_t$: noise the model doesn't explain.
+
+```mermaid
+flowchart LR
+    A["DataFrame<br/>ds = date, y = value"] --> B["Prophet().fit(df)"]
+    B --> C["make_future_dataframe<br/>(periods, freq)"]
+    C --> D["predict()<br/>yhat, yhat_lower, yhat_upper"]
+    D --> E["plot()<br/>plot_components()"]
+```
+
+Because the pieces are separate, `plot_components()` shows each one, which makes the forecast easy to explain. The
+uncertainty band (`yhat_lower` to `yhat_upper`) comes from simulating future trend changes, so it widens the further
+out you forecast.
+
+Prophet's one firm requirement is the input format: a DataFrame with a date column called `ds` and a value column
+called `y`.
+
+**Watch out:** the package was renamed from `fbprophet` to `prophet` in version 1.0. `from fbprophet import Prophet`
+fails on current installs; use `from prophet import Prophet`.
+
+<a id="15-project-forecasting-chicago-crime"></a>
+
+## 15. Project: Forecasting Chicago Crime
+
+The City of Chicago publishes every reported crime since 2001. We'll explore which crimes happen most and where, look
+at the long-term trend, and forecast the monthly count two years ahead.
+
+<a id="from-19-gb-of-reports-to-daily-counts"></a>
+
+### From 1.9 GB of Reports to Daily Counts
+
+The raw export comes as four CSV files with 7.9 million rows and 23 columns. A forecast of total counts only needs
+three of them: the date, the crime type and the location description. Reading the files in chunks with `usecols`
+keeps memory low, and grouping by day and type shrinks everything to 130,000 rows.
+
+**Watch out:** the four files overlap. About 1.8 million rows are exact repeats of the same incident `ID`, and keeping
+them doubles the counts for 2006–2010. De-duplicate on `ID` before counting.
+
+This is the script I ran on the raw files (it takes a few minutes and about 2 GB of RAM):
+
+```python
+import glob
+import pandas as pd
+
+cols = ["ID", "Date", "Primary Type", "Location Description"]
+df = pd.concat(
+    chunk
+    for f in sorted(glob.glob("Chicago_Crimes_*.csv"))
+    for chunk in pd.read_csv(f, usecols=cols, on_bad_lines="skip", chunksize=1_000_000, low_memory=False)
+).drop_duplicates("ID")
+df["date"] = pd.to_datetime(df["Date"], format="%m/%d/%Y %I:%M:%S %p", errors="coerce").dt.date
+
+(df.groupby(["date", "Primary Type"]).size().rename("count").reset_index()
+   .rename(columns={"Primary Type": "primary_type"})
+   .to_csv("data/chicago/chicago-crimes-daily-by-type.csv", index=False))
+(df["Location Description"].value_counts().rename_axis("location_description").rename("count")
+   .reset_index().to_csv("data/chicago/chicago-crimes-location-counts.csv", index=False))
+```
+
+**Watch out:** `error_bad_lines=False` was removed from `read_csv` in pandas 2.0. Use `on_bad_lines="skip"`.
+
+```python
+daily = pd.read_csv(DATA / "chicago" / "chicago-crimes-daily-by-type.csv", parse_dates=["date"])
+locations = pd.read_csv(DATA / "chicago" / "chicago-crimes-location-counts.csv")
+print(daily.head(3).to_string())
+print(f"\n{daily['count'].sum():,} incidents, {daily['primary_type'].nunique()} crime types, "
+      f"{daily['date'].min().date()} to {daily['date'].max().date()}")
+```
+
+Output:
+
+```text
+        date primary_type  count
+0 2001-01-01      ASSAULT     70
+1 2001-01-01      BATTERY    296
+2 2001-01-01     BURGLARY     66
+...
+```
+
+<a id="what-and-where"></a>
+
+### What and Where
+
+Before forecasting, a quick look at which crimes dominate and where they happen.
+
+```python
+by_type = daily.groupby("primary_type")["count"].sum().nlargest(15)
+top_loc = locations.head(15)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4.2))
+sns.barplot(x=by_type.values / 1e6, y=by_type.index, ax=ax1, color="steelblue")
+ax1.set_title("Top 15 crime types"); ax1.set_xlabel("millions of incidents"); ax1.set_ylabel("")
+sns.barplot(x=top_loc["count"] / 1e6, y=top_loc["location_description"], ax=ax2, color="darkorange")
+ax2.set_title("Top 15 locations"); ax2.set_xlabel("millions of incidents"); ax2.set_ylabel("")
+plt.tight_layout(); plt.show()
+print((by_type / daily["count"].sum() * 100).round(1).head(5).to_string())
+```
+
+Output:
+
+```text
+primary_type
+THEFT              20.8
+BATTERY            18.2
+CRIMINAL DAMAGE    11.5
+...
+```
+
+![What and Where](images/what-and-where-1.png)
+
+Theft and battery together account for about 40% of all reports, and most incidents happen on the street or in homes.
+
+<a id="resampling-yearly-quarterly-and-monthly-counts"></a>
+
+### Resampling: Yearly, Quarterly and Monthly Counts
+
+With a `DatetimeIndex`, `resample()` regroups a series to any frequency, like `groupby` for time. Summing daily totals
+by year shows the trend; by month it shows the seasonal cycle on top.
+
+**Watch out:** the frequency aliases changed in pandas 2.2. `"Y"`, `"Q"` and `"M"` (meaning period end) are now `"YE"`,
+`"QE"` and `"ME"`; month **start** is `"MS"`. The old letters raise errors in pandas 3.
+
+```python
+total = daily.groupby("date")["count"].sum()           # one value per day, DatetimeIndex
+
+fig, axes = plt.subplots(1, 3, figsize=(13, 3))
+for ax, (rule, label) in zip(axes, [("YE", "year"), ("QE", "quarter"), ("ME", "month")]):
+    series = total.resample(rule).sum()
+    ax.plot(series.index, series.values / 1e3, marker="o" if rule == "YE" else None, ms=4)
+    ax.set_title(f"Crimes per {label}"); ax.set_ylabel("thousands")
+plt.tight_layout(); plt.show()
+print(total.resample("YE").sum().tail(3).to_string())
+```
+
+Output:
+
+```text
+date
+2015-12-31    262995
+2016-12-31    265462
+2017-12-31     11357
+...
+```
+
+![Resampling: Yearly, Quarterly and Monthly Counts](images/resampling-yearly-quarterly-and-monthly-counts-1.png)
+
+Reported crime fell steadily, from about 486,000 in 2001 to about 265,000 in 2016 (the dip in 2004 is a data gap,
+covered below). The 2017 total is tiny because the
+export stops on 18 January 2017. That last, partial period would look like a crash in a monthly series, so we drop it
+before modelling.
+
+<a id="building-the-monthly-series"></a>
+
+### Building the Monthly Series
+
+Prophet works on any regular frequency. Monthly totals smooth out day-to-day noise and still show the seasonal cycle.
+
+**Watch out:** this export has a hole. From mid-February to early May 2004 there are only a few hundred reports a week
+instead of the usual 8,000 to 9,000, which is why 2004 looks like a dip in the yearly chart. Those months aren't
+low-crime months; they're missing data. Fed to the model as real values, they would drag the trend and seasonality
+down. Prophet accepts `NaN` in `y` and simply skips those rows, so we mark the four affected months as unknown.
+
+```python
+monthly = total.resample("MS").sum()                   # month-start labels suit Prophet's monthly forecasts
+monthly = monthly[monthly.index < "2017-01-01"]        # drop the partial final month
+
+print("monthly totals Jan–Jun 2004 (thousands):", (monthly["2004-01":"2004-06"] / 1e3).round(1).tolist())
+monthly.loc["2004-02-01":"2004-05-01"] = np.nan        # months hit by the gap: unknown, not zero
+chicago_df = monthly.reset_index()
+chicago_df.columns = ["ds", "y"]                       # Prophet's required column names
+print(chicago_df.shape)
+print(chicago_df.tail(3).to_string(index=False))
+```
+
+Output:
+
+```text
+monthly totals Jan–Jun 2004 (thousands): [34.2, 26.8, 8.5, 4.2, 32.0, 41.1]
+(192, 2)
+        ds       y
+2016-10-01 23314.0
+...
+```
+
+<a id="checking-accuracy-on-a-holdout-period"></a>
+
+### Checking Accuracy on a Holdout Period
+
+A forecast is only useful if we know how wrong it tends to be. As with the
+[bulldozer prices](#splitting-by-time-and-measuring-honestly), the test data must come after the training data. Hold
+back the last two years, fit on everything before,
+and compare. **MAPE**, the mean absolute percentage error, is easy to communicate: "on average the forecast was off by
+X%".
+
+```python
+from prophet import Prophet
+from sklearn.metrics import mean_absolute_percentage_error
+
+train = chicago_df[chicago_df["ds"] < "2015-01-01"]
+test = chicago_df[chicago_df["ds"] >= "2015-01-01"]
+
+m = Prophet(seasonality_mode="multiplicative", yearly_seasonality=5)         # seasonal swings shrink as crime falls
+m.fit(train)
+future = m.make_future_dataframe(periods=len(test), freq="MS")
+fc = m.predict(future)
+pred = fc.set_index("ds").loc[test["ds"], "yhat"]
+print(f"holdout MAPE 2015–2016: {mean_absolute_percentage_error(test['y'], pred):.1%}")
+
+ax = train.set_index("ds")["y"].plot(figsize=(10, 3.2), label="training", color="grey")
+test.set_index("ds")["y"].plot(ax=ax, label="actual", color="black")
+fc.set_index("ds")["yhat"].plot(ax=ax, label="forecast", color="crimson")
+ax.fill_between(fc["ds"], fc["yhat_lower"], fc["yhat_upper"], color="crimson", alpha=0.15)
+ax.set_xlim(pd.Timestamp("2010-01-01"), None); ax.set_ylabel("crimes per month"); ax.legend(); plt.show()
+```
+
+Output:
+
+```text
+holdout MAPE 2015–2016: 8.6%
+```
+
+![Checking Accuracy on a Holdout Period](images/checking-accuracy-on-a-holdout-period-1.png)
+
+I used `seasonality_mode="multiplicative"` because the size of the summer peak scales with the overall level: when total
+crime halves, so does the summer bump. With the default additive mode, Prophet adds the same absolute seasonal swing
+every year. Try both in the exercise below; the holdout MAPE tells you which fits better.
+
+`yearly_seasonality=5` sets the number of Fourier terms for the yearly cycle. The default (10) is tuned for daily data;
+with only 12 points per year it can draw wild swings between the months that no data point ever checks. A lower order
+keeps the seasonal curve smooth.
+
+<a id="forecasting-two-years-ahead"></a>
+
+### Forecasting Two Years Ahead
+
+For the real forecast, refit on all the data and extend 24 months.
+
+**Watch out:** `make_future_dataframe(periods=365)` defaults to **daily** steps. On monthly data that silently produces
+365 daily predictions instead of a year of months. Pass `freq="MS"` (or `"W"` for weekly data) so periods are counted in
+the series' own unit.
+
+```python
+m = Prophet(seasonality_mode="multiplicative", yearly_seasonality=5).fit(chicago_df)
+future = m.make_future_dataframe(periods=24, freq="MS")
+forecast = m.predict(future)
+print(forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]].tail(3).round({"yhat": 0, "yhat_lower": 0, "yhat_upper": 0})
+      .to_string(index=False))
+
+fig = m.plot(forecast, xlabel="date", ylabel="crimes per month", figsize=(10, 3.6))
+plt.show()
+```
+
+Output:
+
+```text
+        ds    yhat  yhat_lower  yhat_upper
+2018-10-01 19908.0     18590.0     21342.0
+2018-11-01 17340.0     15929.0     18684.0
+2018-12-01 16681.0     15265.0     17910.0
+```
+
+![Forecasting Two Years Ahead](images/forecasting-two-years-ahead-1.png)
+
+```python
+fig = m.plot_components(forecast, figsize=(10, 4.4))
+plt.show()
+```
+
+![Forecasting Two Years Ahead](images/forecasting-two-years-ahead-2.png)
+
+The components separate the story cleanly: a long, steady decline in the trend, and a yearly cycle that peaks in July
+and August and bottoms out in February. Warm weather means more people outside, and more crime.
+
+**Cheatsheet: Prophet forecasting**
+
+| Step | Code |
+|---|---|
+| Import | `from prophet import Prophet` (not `fbprophet`) |
+| Required format | `df.rename(columns={"date": "ds", "value": "y"})` |
+| Aggregate first | `series.resample("MS").sum()` (`"ME"`, `"QE"`, `"YE"` for period ends) |
+| Fit | `m = Prophet(seasonality_mode="multiplicative", yearly_seasonality=5).fit(df)` (lower Fourier order for monthly data) |
+| Future dates | `m.make_future_dataframe(periods=24, freq="MS")` |
+| Predict | `fc = m.predict(future)` → `yhat`, `yhat_lower`, `yhat_upper` |
+| Plots | `m.plot(fc)`, `m.plot_components(fc)` |
+| Evaluate | Hold out the last periods, then `mean_absolute_percentage_error` |
+
+#### Exercise 9
+
+Forecast **THEFT** on its own. Build its monthly series (dropping the partial month), hold out 2015–2016, and compare
+the holdout MAPE of `seasonality_mode="additive"` against `"multiplicative"`.
+
+#### Solution 9
+
+*Try it yourself before running this cell.*
+
+<details>
+<summary>Show solution</summary>
+
+```python
+theft = daily[daily["primary_type"] == "THEFT"].set_index("date")["count"].resample("MS").sum().loc[:"2016-12-01"]
+theft.loc["2004-02-01":"2004-05-01"] = np.nan          # same data gap as the total
+theft = theft.reset_index()
+theft.columns = ["ds", "y"]
+tr, te = theft[theft["ds"] < "2015-01-01"], theft[theft["ds"] >= "2015-01-01"]
+for mode in ("additive", "multiplicative"):
+    mm = Prophet(seasonality_mode=mode, yearly_seasonality=5).fit(tr)
+    p = mm.predict(mm.make_future_dataframe(periods=len(te), freq="MS")).set_index("ds").loc[te["ds"], "yhat"]
+    print(f"{mode:15} MAPE {mean_absolute_percentage_error(te['y'], p):.1%}")
+```
+
+Output:
+
+```text
+additive        MAPE 7.9%
+multiplicative  MAPE 7.4%
+```
+
+</details>
+
+<a id="16-project-forecasting-avocado-prices"></a>
+
+## 16. Project: Forecasting Avocado Prices
+
+The Hass Avocado Board publishes weekly retail scan data. This version covers 2015 to March 2018: average price and
+volumes for conventional and organic avocados in 54 regions. The goal is a price forecast for the next year.
+
+<a id="exploring-the-price-data"></a>
+
+### Exploring the Price Data
+
+**Watch out:** the CSV starts with an unnamed index column. Read it with `index_col=0` or you get a meaningless
+`Unnamed: 0` column.
+
+```python
+avocado_df = pd.read_csv(DATA / "avocado.csv", index_col=0, parse_dates=["Date"]).sort_values("Date")
+print(avocado_df.shape)
+print(avocado_df[["Date", "AveragePrice", "Total Volume", "type", "year", "region"]].head(3).to_string(index=False))
+print("\nregions:", avocado_df["region"].nunique(), "| types:", avocado_df["type"].unique().tolist())
+print("rows per year:", avocado_df["year"].value_counts().sort_index().to_dict())
+```
+
+Output:
+
+```text
+(18249, 13)
+      Date  AveragePrice  Total Volume    type  year             region
+2015-01-04          1.75      27365.89 organic  2015          Southeast
+2015-01-04          1.49      17723.17 organic  2015            Chicago
+...
+```
+
+<a id="one-series-at-a-time"></a>
+
+### One Series at a Time
+
+Here's the trap in this dataset. Every week has 108 rows (54 regions × 2 types). Plotting `AveragePrice` against
+`Date` for the whole table, or handing the whole table to Prophet, mixes all of them into one jagged cloud: cheap
+conventional avocados in Houston next to expensive organic ones in San Francisco. Some "regions" are even aggregates of
+others (`TotalUS`, `West`, `California`).
+
+A forecast needs **one** series. Pick a region and a type, or aggregate explicitly.
+
+```python
+total_us = avocado_df[avocado_df["region"] == "TotalUS"]
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 3.4), sharey=True)
+ax1.plot(avocado_df["Date"], avocado_df["AveragePrice"], lw=0.3, color="grey")
+ax1.set_title("Every row plotted together"); ax1.set_ylabel("average price ($)")
+for kind, g in total_us.groupby("type"):
+    ax2.plot(g["Date"], g["AveragePrice"], label=kind)
+ax2.set_title("TotalUS, one line per type"); ax2.legend()
+plt.tight_layout(); plt.show()
+```
+
+![One Series at a Time](images/one-series-at-a-time-1.png)
+
+Organic avocados cost roughly 40% more, both types share the same seasonal rhythm, and 2017 had a sharp price spike
+that peaked in the autumn. We'll forecast the US conventional price.
+
+Look closely at the organic line in July–September 2015: the price sits at exactly $1.00 for weeks, with whole-number
+volumes. Those are placeholder values in the source data, not real prices. The conventional series doesn't have the
+problem; if you model organic prices, drop or interpolate those weeks first.
+
+<a id="forecasting-the-us-price"></a>
+
+### Forecasting the US Price
+
+First a holdout check on the last 26 weeks, against the simplest possible baseline, then the real 52-week forecast.
+
+```python
+us_conv = (total_us[total_us["type"] == "conventional"][["Date", "AveragePrice"]]
+           .rename(columns={"Date": "ds", "AveragePrice": "y"}))
+print(us_conv.shape, us_conv["ds"].dt.day_name().unique())
+
+cut = us_conv["ds"].max() - pd.Timedelta(weeks=26)
+train, test = us_conv[us_conv["ds"] <= cut], us_conv[us_conv["ds"] > cut]
+m = Prophet(yearly_seasonality=True, weekly_seasonality=False, daily_seasonality=False).fit(train)
+fc = m.predict(m.make_future_dataframe(periods=len(test), freq="W-SUN"))
+p = fc.set_index("ds").loc[test["ds"], "yhat"]
+naive = np.full(len(test), train["y"].iloc[-1])           # "price stays where it was"
+print(f"26-week holdout MAPE: Prophet {mean_absolute_percentage_error(test['y'], p):.1%}, "
+      f"last-value baseline {mean_absolute_percentage_error(test['y'], naive):.1%}")
+```
+
+Output:
+
+```text
+(169, 2) <StringArray>
+['Sunday']
+Length: 1, dtype: str
+26-week holdout MAPE: Prophet 24.1%, last-value baseline 42.1%
+```
+
+The dates are all Sundays, so the future frame uses `freq="W-SUN"`. Weekly and daily seasonality are switched off
+because one point per week can't reveal a within-week pattern.
+
+The naive "last value" baseline is worth printing next to any forecast. Here both errors are large, because the
+holdout starts in autumn 2017, right after the price spike peaked, and prices then fell fast. Prophet does better than
+the baseline because its yearly seasonality expects winter prices to drop, but an error above 20% says this forecast
+is a rough guide to direction and season, not a price list.
+
+```python
+m = Prophet(yearly_seasonality=True, weekly_seasonality=False, daily_seasonality=False).fit(us_conv)
+forecast = m.predict(m.make_future_dataframe(periods=52, freq="W-SUN"))
+fig = m.plot(forecast, xlabel="date", ylabel="price ($)", figsize=(10, 3.4)); plt.show()
+fig = m.plot_components(forecast, figsize=(10, 4)); plt.show()
+```
+
+![Forecasting the US Price](images/forecasting-the-us-price-1.png)
+
+![Forecasting the US Price](images/forecasting-the-us-price-2.png)
+
+<a id="region-specific-forecasts"></a>
+
+### Region-Specific Forecasts
+
+A distributor in one market cares about its own prices. Filtering to a single region and type gives a cleaner series
+than the national one. Here's the `West` region (itself an aggregate of the western markets), conventional avocados.
+
+```python
+west = (avocado_df[(avocado_df["region"] == "West") & (avocado_df["type"] == "conventional")]
+        [["Date", "AveragePrice"]].rename(columns={"Date": "ds", "AveragePrice": "y"}))
+m_west = Prophet(yearly_seasonality=True, weekly_seasonality=False, daily_seasonality=False).fit(west)
+fc_west = m_west.predict(m_west.make_future_dataframe(periods=52, freq="W-SUN"))
+print(fc_west[["ds", "yhat", "yhat_lower", "yhat_upper"]].tail(2).round({"yhat": 2, "yhat_lower": 2, "yhat_upper": 2})
+      .to_string(index=False))
+fig = m_west.plot(fc_west, xlabel="date", ylabel="price ($)", figsize=(10, 3.4)); plt.show()
+```
+
+Output:
+
+```text
+        ds  yhat  yhat_lower  yhat_upper
+2019-03-17  1.21        1.09        1.34
+2019-03-24  1.22        1.09        1.35
+```
+
+![Region-Specific Forecasts](images/region-specific-forecasts-1.png)
+
+Note how wide the uncertainty band gets after a year. With only three years of history, which include one unusual
+spike, Prophet is honest about how little it knows. A single year's forecast from three years of data should be read
+as "the seasonal shape plus a rough level", not a precise price.
+
+#### Exercise 10
+
+Compare organic and conventional avocados in `TotalUS`. Fit one Prophet model per type and plot both 52-week forecasts
+(`yhat`) on one chart, along with the history.
+
+#### Solution 10
+
+*Try it yourself before running this cell.*
+
+<details>
+<summary>Show solution</summary>
+
+```python
+plt.figure(figsize=(10, 3.4))
+for kind, color in (("conventional", "steelblue"), ("organic", "seagreen")):
+    s = (total_us[total_us["type"] == kind][["Date", "AveragePrice"]]
+         .rename(columns={"Date": "ds", "AveragePrice": "y"}))
+    mk = Prophet(yearly_seasonality=True, weekly_seasonality=False, daily_seasonality=False).fit(s)
+    f = mk.predict(mk.make_future_dataframe(periods=52, freq="W-SUN"))
+    plt.plot(s["ds"], s["y"], color=color, lw=1, label=f"{kind} (history)")
+    plt.plot(f["ds"], f["yhat"], color=color, ls="--", label=f"{kind} (forecast)")
+plt.ylabel("price ($)"); plt.legend(fontsize=8); plt.show()
+```
+
+![Region-Specific Forecasts](images/region-specific-forecasts-2.png)
+
+</details>
+
+<a id="17-neural-networks-from-one-neuron-up"></a>
+
+## 17. Neural Networks from One Neuron Up
+
+The deep learning projects start here. Before calling Keras, it's worth building the pieces by hand once, because
+everything later (CNNs and pretrained networks included) is made of the same parts: weighted sums, activations, a loss,
+and gradient descent.
+
+<a id="a-single-artificial-neuron"></a>
+
+### A Single Artificial Neuron
+
+A biological neuron collects signals through its dendrites, combines them, and fires a signal down its axon if the
+combined input is strong enough. An artificial neuron imitates that with arithmetic:
+
+1. multiply each input $x_i$ by a weight $w_i$ (how much that input matters),
+2. add them up and add a bias $b$ (which shifts the result up or down),
+3. pass the sum through an **activation function** $f$.
+
+$$y = f\left(\sum_i w_i x_i + b\right)$$
+
+With three inputs, the neuron has four adjustable parameters: three weights and a bias. Training a network means finding
+good values for all such parameters.
+
+```python
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+x = np.array([0.7, 0.1, 0.3])      # three inputs
+w = np.array([0.6, -0.4, 0.9])     # one weight per input
+b = 0.1                            # bias
+
+z = w @ x + b                      # weighted sum: 0.6*0.7 - 0.4*0.1 + 0.9*0.3 + 0.1
+print(f"weighted sum z = {z:.2f}")
+print(f"output sigmoid(z) = {sigmoid(z):.3f}")
+```
+
+Output:
+
+```text
+weighted sum z = 0.75
+output sigmoid(z) = 0.679
+```
+
+<a id="activation-functions"></a>
+
+### Activation Functions
+
+Without an activation, stacking neurons would only ever produce a linear function, because a sum of weighted sums is
+still a weighted sum. The activation adds the non-linearity that lets networks model curves.
+
+- **Step**: outputs 0 or 1. The original perceptron; not used for training because its slope is zero everywhere.
+- **Sigmoid**: squashes any number into (0, 1). Good for a probability output; slow to train in hidden layers.
+- **ReLU** (rectified linear unit): `max(0, z)`. The default for hidden layers: cheap and doesn't saturate for positive
+  inputs.
+- **Linear** (identity): used in the output layer for regression, so the network can predict any value.
+- **Softmax**: turns a vector of scores into probabilities that sum to 1. The output layer for multi-class problems.
+
+```python
+z = np.linspace(-5, 5, 200)
+activations = {"step": (z > 0).astype(float), "sigmoid": sigmoid(z),
+               "ReLU": np.maximum(0, z), "tanh": np.tanh(z)}
+
+fig, axes = plt.subplots(1, 4, figsize=(12, 2.6), sharex=True)
+for ax, (name, y) in zip(axes, activations.items()):
+    ax.plot(z, y, lw=2)
+    ax.axhline(0, color="grey", lw=0.5); ax.axvline(0, color="grey", lw=0.5)
+    ax.set_title(name)
+plt.tight_layout(); plt.show()
+```
+
+![Activation Functions](images/activation-functions-1.png)
+
+<a id="layers-are-matrix-multiplications"></a>
+
+### Layers Are Matrix Multiplications
+
+Put two neurons side by side, each seeing the same three inputs, and the six weights fit neatly into a 2×3 matrix. A
+whole layer then becomes one matrix product plus a bias vector, followed by the activation:
+
+$$\mathbf{a} = f(W\mathbf{p} + \mathbf{b})$$
+
+Stack layers and you get a **multi-layer perceptron**, also called a fully connected feed-forward network: every neuron
+in one layer connects to every neuron in the next, and information flows only forwards.
+
+```mermaid
+flowchart LR
+    subgraph Input
+        x1((x1)); x2((x2)); x3((x3))
+    end
+    subgraph Hidden["Hidden layer (ReLU)"]
+        h1((h1)); h2((h2)); h3((h3)); h4((h4))
+    end
+    subgraph Output["Output (linear)"]
+        y((y))
+    end
+    x1 --> h1 & h2 & h3 & h4
+    x2 --> h1 & h2 & h3 & h4
+    x3 --> h1 & h2 & h3 & h4
+    h1 & h2 & h3 & h4 --> y
+```
+
+The network above has 3×4 + 4 = 16 parameters in the hidden layer and 4×1 + 1 = 5 in the output layer. Keras reports
+exactly these counts in `model.summary()`.
+
+```python
+p = np.array([0.7, 0.1, 0.3])                 # inputs
+W = np.array([[0.6, -0.4, 0.9],               # row 1: weights into neuron 1
+              [0.2,  0.8, -0.5]])             # row 2: weights into neuron 2
+b = np.array([0.1, -0.2])
+
+a = np.maximum(0, W @ p + b)                  # ReLU(Wp + b): the whole layer in one line
+print("layer output:", a.round(3))
+print("trainable parameters:", W.size + b.size)
+```
+
+Output:
+
+```text
+layer output: [0.75 0.  ]
+trainable parameters: 8
+```
+
+<a id="how-a-network-learns-loss-gradient-descent-and-backpropagation"></a>
+
+### How a Network Learns: Loss, Gradient Descent and Backpropagation
+
+A freshly created network has random weights, so its predictions are garbage. Training repeats four steps:
+
+1. **Forward pass**: push the inputs through the network to get predictions.
+2. **Loss**: measure how wrong they are, for example the mean squared error between prediction and truth.
+3. **Backward pass (backpropagation)**: use the chain rule to work out, for every weight, how much the loss would change
+   if that weight changed a little. This is the **gradient**.
+4. **Update**: nudge every weight a small step against its gradient. The step size is the **learning rate**.
+
+```mermaid
+flowchart LR
+    A[Inputs] --> B[Forward pass]
+    B --> C[Predictions]
+    C --> D[Loss vs. true labels]
+    D --> E[Backpropagation:<br/>gradient of loss<br/>for every weight]
+    E --> F[Gradient descent:<br/>w = w - lr * gradient]
+    F --> B
+```
+
+This is the same gradient descent that [fitted a straight line](#rules-written-by-data) in section 1, only with
+thousands of parameters instead of two. It's like walking downhill in fog: you can't see the valley, but you can feel which way the ground slopes
+under your feet and take a step that way. Too small a learning rate and you crawl; too large and you overshoot the
+valley and bounce around.
+
+The code below trains a one-hidden-layer network on a noisy curve with nothing but NumPy, writing out the backward pass
+by hand, and records the fit as an animation. Keras does exactly this for us later, in one line.
+
+```python
+from matplotlib.animation import FuncAnimation, PillowWriter
+
+# Toy data: a noisy curve
+X_toy = np.linspace(-3, 3, 80).reshape(-1, 1)
+y_toy = np.sin(X_toy) + 0.15 * rng.standard_normal(X_toy.shape)
+
+# 1 input -> 16 hidden (tanh) -> 1 output (linear)
+W1, b1 = rng.normal(0, 1, (1, 16)), np.zeros(16)
+W2, b2 = rng.normal(0, 0.3, (16, 1)), np.zeros(1)
+lr, snapshots, losses = 0.05, [], []
+
+for epoch in range(3001):
+    h = np.tanh(X_toy @ W1 + b1)                 # forward pass
+    pred = h @ W2 + b2
+    err = pred - y_toy
+    losses.append((err ** 2).mean())             # mean squared error
+    d_pred = 2 * err / len(X_toy)                # backward pass (chain rule, layer by layer)
+    dW2, db2 = h.T @ d_pred, d_pred.sum(0)
+    d_h = (d_pred @ W2.T) * (1 - h ** 2)         # derivative of tanh
+    dW1, db1 = X_toy.T @ d_h, d_h.sum(0)
+    for param, grad in ((W1, dW1), (b1, db1), (W2, dW2), (b2, db2)):
+        param -= lr * grad                       # gradient descent step
+    if epoch % 75 == 0:
+        snapshots.append((epoch, pred.ravel().copy()))
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9, 3.2))
+ax1.scatter(X_toy, y_toy, s=10, color="grey")
+line, = ax1.plot(X_toy, snapshots[0][1], color="crimson", lw=2)
+ax2.plot(losses, color="steelblue"); ax2.set_yscale("log")
+dot, = ax2.plot([0], [losses[0]], "o", color="crimson")
+ax2.set_xlabel("epoch"); ax2.set_ylabel("MSE (log scale)")
+
+def update(i):
+    epoch, p = snapshots[i]
+    line.set_ydata(p); dot.set_data([epoch], [losses[epoch]])
+    ax1.set_title(f"epoch {epoch}")
+    return line, dot
+
+FuncAnimation(fig, update, frames=len(snapshots), interval=120).save(
+    IMAGES / "network-learning.gif", writer=PillowWriter(fps=8))
+plt.close(fig)
+print(f"MSE after training: {losses[-1]:.4f}")
+```
+
+Output:
+
+```text
+MSE after training: 0.0166
+```
+
+![A small network fitting a curve as gradient descent runs](images/network-learning.gif)
+
+Each frame shows the network's prediction after another 75 epochs of gradient descent. It starts nearly flat, quickly
+captures the overall shape, then slowly refines the bends while the loss on the right keeps falling.
+
+A network with enough parameters can memorise its training data, so everything from
+[the framework section](#underfitting-overfitting-and-the-goldilocks-zone) applies here too: hold out validation and test
+data, and watch for training and validation loss drifting apart. Dropout and data augmentation, two remedies specific to
+neural networks, come up in the CNN projects.
+
+#### Exercise 11
+
+Re-run the NumPy network with learning rates of `0.005` and `0.5`. What happens to the final MSE in each case? Keep the
+data the same by recreating the weights with a fresh `np.random.default_rng(0)`.
+
+#### Solution 11
+
+*Try it yourself before running this cell.*
+
+<details>
+<summary>Show solution</summary>
+
+```python
+def train_toy(lr, epochs=3000):
+    g = np.random.default_rng(0)
+    W1, b1 = g.normal(0, 1, (1, 16)), np.zeros(16)
+    W2, b2 = g.normal(0, 0.3, (16, 1)), np.zeros(1)
+    for _ in range(epochs):
+        h = np.tanh(X_toy @ W1 + b1); err = h @ W2 + b2 - y_toy
+        d = 2 * err / len(X_toy); d_h = (d @ W2.T) * (1 - h ** 2)
+        W2 -= lr * h.T @ d; b2 -= lr * d.sum(0); W1 -= lr * X_toy.T @ d_h; b1 -= lr * d_h.sum(0)
+    return (err ** 2).mean()
+
+for lr in (0.005, 0.05, 0.5):
+    print(f"lr={lr:<6} final MSE={train_toy(lr):.4f}")
+# Too small: still underfitting after 3000 steps. Too large: steps overshoot and the loss can stall or blow up.
+```
+
+Output:
+
+```text
+lr=0.005  final MSE=0.0329
+lr=0.05   final MSE=0.0166
+lr=0.5    final MSE=nan
+```
+
+</details>
+
+<a id="18-project-predicting-car-purchase-amounts"></a>
+
+## 18. Project: Predicting Car Purchase Amounts
+
+A car dealer wants to estimate how much a customer is likely to spend on a car from a few facts about them: gender, age,
+annual salary, credit card debt and net worth. The target is a dollar amount, so this is a **regression** problem, and
+we'll solve it with a small fully connected network.
+
+<a id="loading-and-exploring-the-customer-data"></a>
+
+### Loading and Exploring the Customer Data
+
+The file has 500 customers. Three columns (name, e-mail, country) identify people rather than describe their finances,
+so they're dropped. Country could in principle carry signal, but here it has hundreds of values for 500 rows, which is
+far too sparse to learn from.
+
+**Watch out:** the file isn't UTF-8. Reading it without `encoding="ISO-8859-1"` fails on accented names.
+
+```python
+car_df = pd.read_csv(DATA / "car-purchasing.csv", encoding="ISO-8859-1")
+print(car_df.shape)
+print(car_df.drop(columns=["Customer e-mail"]).head(3).to_string())
+print("\ncountries:", car_df["Country"].nunique())
+```
+
+Output:
+
+```text
+(500, 9)
+     Customer Name   Country  Gender        Age  Annual Salary  Credit Card Debt    Net Worth  Car Purchase Amount
+0    Martina Avila  Bulgaria       0  41.851720    62812.09301      11609.380910  238961.2505          35321.45877
+1    Harlan Barnes    Belize       0  40.870623    66646.89292       9572.957136  530973.9078          45115.52566
+...
+```
+
+```python
+features = ["Gender", "Age", "Annual Salary", "Credit Card Debt", "Net Worth"]
+target = "Car Purchase Amount"
+
+print(car_df[features + [target]].corr()[target].round(2).sort_values(ascending=False).to_string())
+sns.pairplot(car_df[features[1:] + [target]], height=1.6, plot_kws={"s": 8, "alpha": 0.5})
+plt.show()
+```
+
+Output:
+
+```text
+Car Purchase Amount    1.00
+Age                    0.63
+Annual Salary          0.62
+Net Worth              0.49
+...
+```
+
+![Loading and Exploring the Customer Data](images/loading-and-exploring-the-customer-data-1.png)
+
+Age, salary and net worth all correlate strongly with the amount spent, and the scatter plots in the bottom row look
+almost perfectly linear. Keep that in mind; it matters when we compare models.
+
+<a id="splitting-and-scaling-without-leakage"></a>
+
+### Splitting and Scaling Without Leakage
+
+Neural networks train best when inputs sit on similar scales. Salary is in tens of thousands and gender is 0 or 1, so we
+min-max scale everything to [0, 1], and scale the target too so the loss isn't dominated by its size.
+
+**Watch out:** the order matters. Fitting the scaler on the full dataset before splitting lets the minimum and maximum of
+the test rows leak into training. Split first, fit the scaler on the training rows only, then apply it to both. The same
+rule applies to every preprocessing step; the
+[data preparation reference](https://github.com/rokon-uddin/data-preparation-reference) covers it in depth.
+
+```python
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
+
+X = car_df[features]
+y = car_df[[target]]                        # 2-D, because scalers expect a column
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+
+scaler_x = MinMaxScaler().fit(X_train)      # learn min/max from training rows only
+scaler_y = MinMaxScaler().fit(y_train)
+X_train_s, X_test_s = scaler_x.transform(X_train), scaler_x.transform(X_test)
+y_train_s = scaler_y.transform(y_train)
+
+print("train", X_train_s.shape, "test", X_test_s.shape)
+print("scaled range:", X_train_s.min().round(2), "to", X_train_s.max().round(2))
+```
+
+Output:
+
+```text
+train (375, 5) test (125, 5)
+scaled range: 0.0 to 1.0
+```
+
+<a id="building-and-training-the-network"></a>
+
+### Building and Training the Network
+
+Two hidden layers of 25 ReLU neurons and one linear output neuron. Adam is a gradient descent variant that adapts the
+step size per weight; mean squared error is the standard regression loss. `validation_split=0.2` holds back the last 20%
+of the training rows to monitor overfitting.
+
+**Watch out:** Keras 3 no longer accepts `input_dim=` on the first `Dense` layer. Declare the input with
+`keras.Input(shape=...)` instead.
+
+```python
+import keras
+from keras import layers
+
+keras.utils.set_random_seed(42)
+model = keras.Sequential([
+    keras.Input(shape=(len(features),)),
+    layers.Dense(25, activation="relu"),
+    layers.Dense(25, activation="relu"),
+    layers.Dense(1, activation="linear"),
+])
+model.compile(optimizer="adam", loss="mean_squared_error")
+model.summary(print_fn=lambda s, **kw: print(s) if "params" in s.lower() else None)
+
+history = model.fit(X_train_s, y_train_s, epochs=100, batch_size=25,
+                    validation_split=0.2, verbose=0)
+print(f"final loss: train {history.history['loss'][-1]:.5f}, validation {history.history['val_loss'][-1]:.5f}")
+```
+
+Output:
+
+```text
+Model: "sequential"
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Layer (type)                    ┃ Output Shape           ┃       Param # ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+...
+```
+
+```python
+plt.figure(figsize=(6, 3))
+plt.plot(history.history["loss"], label="training")
+plt.plot(history.history["val_loss"], label="validation")
+plt.yscale("log"); plt.xlabel("epoch"); plt.ylabel("MSE (scaled, log)")
+plt.title("Loss during training"); plt.legend(); plt.show()
+```
+
+![Building and Training the Network](images/building-and-training-the-network-1.png)
+
+<a id="evaluating-in-dollars"></a>
+
+### Evaluating in Dollars
+
+A scaled MSE of 0.0003 means nothing to a sales team. Convert predictions back with `scaler_y.inverse_transform` and
+report the mean absolute error in dollars and R² on the untouched test set.
+
+Then the important question: is the network worth it? A plain linear regression takes one line and no tuning.
+
+```python
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, r2_score
+
+pred_nn = scaler_y.inverse_transform(model.predict(X_test_s, verbose=0))
+linear = LinearRegression().fit(X_train, y_train)
+pred_lin = linear.predict(X_test)
+
+for name, pred in [("neural network", pred_nn), ("linear regression", pred_lin)]:
+    print(f"{name:18} MAE ${mean_absolute_error(y_test, pred):>8,.0f}   R² {r2_score(y_test, pred):.4f}")
+```
+
+Output:
+
+```text
+neural network     MAE $     379   R² 0.9966
+linear regression  MAE $       1   R² 1.0000
+```
+
+The network is good, within a few hundred dollars on average. The linear model is perfect: an error of about one
+dollar. This dataset was clearly generated from a linear formula of age, salary, net worth and debt, so the network has
+nothing extra to find and can only approximate the straight line with its ReLU pieces. That's the
+lesson worth taking from this project: **fit a simple baseline first**. A neural network earns its complexity only when
+the relationship is genuinely non-linear, as it will be with images.
+
+```python
+plt.figure(figsize=(4.2, 4))
+plt.scatter(y_test, pred_nn, s=12, alpha=0.7)
+lims = [y_test.values.min(), y_test.values.max()]
+plt.plot(lims, lims, color="crimson", lw=1)
+plt.xlabel("actual amount ($)"); plt.ylabel("predicted amount ($)")
+plt.title("Network predictions on the test set"); plt.show()
+```
+
+![Evaluating in Dollars](images/evaluating-in-dollars-1.png)
+
+<a id="predicting-for-a-new-customer"></a>
+
+### Predicting for a New Customer
+
+To score a new customer, pass the raw values through the **same fitted scaler**, predict, and invert the target
+scaling. Hand-typing already-normalised numbers is error prone; let the scaler do it.
+
+```python
+new_customer = pd.DataFrame([{"Gender": 1, "Age": 42, "Annual Salary": 70_000,
+                              "Credit Card Debt": 9_000, "Net Worth": 450_000}])
+amount = scaler_y.inverse_transform(model.predict(scaler_x.transform(new_customer), verbose=0))
+print(f"expected purchase: ${amount[0, 0]:,.0f}")
+```
+
+Output:
+
+```text
+expected purchase: $45,617
+```
+
+**Cheatsheet: tabular regression with Keras**
+
+| Step | Code |
+|---|---|
+| Scale after splitting | `MinMaxScaler().fit(X_train)` then `.transform(X_test)` |
+| Input layer | `keras.Input(shape=(n_features,))` |
+| Regression output | `layers.Dense(1, activation="linear")` with `loss="mean_squared_error"` |
+| Watch overfitting | `model.fit(..., validation_split=0.2)` then plot `history.history` |
+| Back to real units | `scaler_y.inverse_transform(model.predict(X))` |
+| Sanity check | Compare against `LinearRegression` |
+
+#### Exercise 12
+
+Add an `EarlyStopping` callback (a function Keras runs after every epoch) that watches `val_loss`, waits 10 epochs without improvement and restores the best
+weights. Train for up to 500 epochs and print how many epochs actually ran and the test MAE in dollars.
+
+#### Solution 12
+
+*Try it yourself before running this cell.*
+
+<details>
+<summary>Show solution</summary>
+
+```python
+keras.utils.set_random_seed(0)
+model_es = keras.Sequential([keras.Input(shape=(len(features),)),
+                             layers.Dense(25, activation="relu"), layers.Dense(25, activation="relu"),
+                             layers.Dense(1)])
+model_es.compile(optimizer="adam", loss="mean_squared_error")
+stop = keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, restore_best_weights=True)
+h = model_es.fit(X_train_s, y_train_s, epochs=500, batch_size=25, validation_split=0.2,
+                 callbacks=[stop], verbose=0)
+pred = scaler_y.inverse_transform(model_es.predict(X_test_s, verbose=0))
+print("epochs run:", len(h.history["loss"]), f"| test MAE ${mean_absolute_error(y_test, pred):,.0f}")
+```
+
+Output:
+
+```text
+epochs run: 321 | test MAE $71
+```
+
+</details>
+
+<a id="19-how-convolutional-neural-networks-see"></a>
+
+## 19. How Convolutional Neural Networks See
+
+Images are just arrays of pixel values ([section 5](#images-are-just-arrays) showed one). A dense network treats an
+image as a long list of unrelated numbers: a 32×32 colour image becomes 3,072 inputs, and
+shifting the object by one pixel changes all of them. Convolutional networks keep the 2-D layout and learn small
+pattern detectors that slide across the image, which is why they dominate image tasks.
+
+<a id="convolution-sliding-feature-detectors"></a>
+
+### Convolution: Sliding Feature Detectors
+
+A **convolution** slides a small grid of weights, the **kernel** or filter (often 3×3 or 5×5), over the image. At each
+position it multiplies the kernel with the patch underneath and sums the result into one number. The output grid is a
+**feature map**: bright where the patch looks like the kernel's pattern.
+
+A hand-made vertical-edge kernel lights up wherever brightness changes from left to right. In a CNN, nobody writes the
+kernels: the network starts with random ones and learns them by backpropagation, exactly like the weights of a dense
+layer. Early layers end up detecting edges and colours; deeper layers combine them into textures, parts and objects.
+
+```python
+from matplotlib.animation import FuncAnimation, PillowWriter
+
+def convolve2d(image, kernel):
+    """'Valid' convolution (strictly cross-correlation, as in deep learning libraries)."""
+    kh, kw = kernel.shape
+    out = np.zeros((image.shape[0] - kh + 1, image.shape[1] - kw + 1))
+    for i in range(out.shape[0]):
+        for j in range(out.shape[1]):
+            out[i, j] = (image[i:i + kh, j:j + kw] * kernel).sum()
+    return out
+
+# A tiny 8x8 image: dark left half, bright right half, plus one bright pixel
+small = np.zeros((8, 8)); small[:, 4:] = 1; small[2, 1] = 1
+edge = np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]])           # vertical-edge detector
+fmap = convolve2d(small, edge)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7, 3.4))
+ax1.imshow(small, cmap="gray"); ax1.set_title("input with 3×3 kernel window")
+rect = plt.Rectangle((-0.5, -0.5), 3, 3, fill=False, color="crimson", lw=3); ax1.add_patch(rect)
+shown = np.full_like(fmap, np.nan)
+im = ax2.imshow(shown, cmap="coolwarm", vmin=-3, vmax=3); ax2.set_title("feature map")
+for ax in (ax1, ax2): ax.set_xticks([]); ax.set_yticks([])
+positions = [(i, j) for i in range(fmap.shape[0]) for j in range(fmap.shape[1])]
+
+def update(k):
+    i, j = positions[k]
+    rect.set_xy((j - 0.5, i - 0.5)); shown[i, j] = fmap[i, j]; im.set_data(shown)
+    ax2.set_title(f"feature map: out[{i},{j}] = {fmap[i, j]:+.0f}")
+    return rect, im
+
+FuncAnimation(fig, update, frames=len(positions), interval=150).save(
+    IMAGES / "convolution.gif", writer=PillowWriter(fps=6))
+plt.close(fig)
+print(fmap.astype(int))
+```
+
+Output:
+
+```text
+[[ 0 -1  3  3  0  0]
+ [ 0 -1  3  3  0  0]
+ [ 0 -1  3  3  0  0]
+ [ 0  0  3  3  0  0]
+...
+```
+
+![A 3×3 edge kernel sliding over an 8×8 image](images/convolution.gif)
+
+The feature map is strongly positive exactly where dark meets bright, and the isolated bright pixel produces a
+positive/negative pair on either side of it. A 3×3 kernel on an 8×8 image gives a 6×6 output; padding the input with
+zeros (`padding="same"` in Keras) keeps the size unchanged.
+
+```python
+yy, xx = np.mgrid[0:64, 0:64]                                   # a small synthetic test image
+gray = np.zeros((64, 64)) + xx * 2 + yy                         # smooth background gradient
+gray[(xx - 22) ** 2 + (yy - 22) ** 2 < 120] = 255               # bright disc
+gray[40:56, 36:58] = 200                                        # bright box
+kernels = {"vertical edges": edge,
+           "horizontal edges": edge.T,
+           "blur": np.ones((5, 5)) / 25}
+
+fig, axes = plt.subplots(1, 4, figsize=(10, 2.6))
+axes[0].imshow(gray, cmap="gray"); axes[0].set_title("grayscale input")
+for ax, (name, k) in zip(axes[1:], kernels.items()):
+    ax.imshow(convolve2d(gray, k), cmap="gray"); ax.set_title(name)
+for ax in axes: ax.axis("off")
+plt.tight_layout(); plt.show()
+```
+
+![Convolution: Sliding Feature Detectors](images/convolution-sliding-feature-detectors-1.png)
+
+<a id="relu-pooling-and-flattening"></a>
+
+### ReLU, Pooling and Flattening
+
+After each convolution comes a **ReLU**, which sets negative responses to zero and passes positive ones through. The
+feature map becomes flat zeros with peaks where the pattern was found, which sharpens the signal and adds
+non-linearity.
+
+**Pooling** then downsamples each feature map. **Max pooling** keeps the largest value in every 2×2 block; **average
+pooling** keeps the mean. Either halves the width and height, which:
+
+- cuts the number of values (and so parameters and compute) in later layers by 4×,
+- makes the network tolerant of small shifts: the peak survives even if it moves by a pixel,
+- reduces overfitting.
+
+Finally, **flattening** turns the stack of small feature maps into one long vector that feeds ordinary dense layers,
+ending in a softmax over the classes.
+
+```python
+feature = np.array([[ 7, -5,  2,  1],
+                    [10,  2, -3, 17],
+                    [-2,  0, 12, -8],
+                    [ 4, -1,  3,  9]])
+relu = np.maximum(0, feature)
+blocks = relu.reshape(2, 2, 2, 2).swapaxes(1, 2)     # split into four 2x2 blocks
+print("after ReLU:\n", relu)
+print("max pool:\n", blocks.max(axis=(2, 3)))
+print("average pool:\n", blocks.mean(axis=(2, 3)))
+print("flattened:", blocks.max(axis=(2, 3)).ravel())
+```
+
+Output:
+
+```text
+after ReLU:
+ [[ 7  0  2  1]
+ [10  2  0 17]
+ [ 0  0 12  0]
+...
+```
+
+```mermaid
+flowchart LR
+    A["Image<br/>32×32×3"] --> B["Conv + ReLU<br/>learned filters"]
+    B --> C["Pooling<br/>halve width/height"]
+    C --> D["Conv + ReLU"]
+    D --> E["Pooling"]
+    E --> F["Flatten"]
+    F --> G["Dense + ReLU<br/>(dropout)"]
+    G --> H["Softmax<br/>class probabilities"]
+```
+
+**Dropout** randomly switches off a fraction of neurons at each training step (for example 40%). The network can't rely
+on any single neuron, so it learns redundant, more general features. Dropout is active only during training; at
+prediction time all neurons are used.
+
+<a id="20-project-classifying-cifar-10-images"></a>
+
+## 20. Project: Classifying CIFAR-10 Images
+
+CIFAR-10 (from the Canadian Institute for Advanced Research) has 60,000 colour images of 32×32 pixels in ten classes:
+airplane, automobile, bird, cat, deer, dog, frog, horse, ship and truck. It's perfectly balanced, with 6,000 images per
+class, split into 50,000 for training and 10,000 for testing. The images are tiny and blurry, which makes it a good
+benchmark: easy to train on a laptop, hard to get near-perfect.
+
+<a id="loading-the-images"></a>
+
+### Loading the Images
+
+`keras.datasets.cifar10.load_data()` downloads and caches the data. The loader below also accepts a local copy of the
+official archive and, if neither is available, generates a small synthetic stand-in of coloured shapes so the rest of
+the code still runs end to end.
+
+```python
+import pickle, tarfile
+import keras
+from keras import layers
+import tensorflow as tf
+tf.get_logger().setLevel("ERROR")                 # hide tf.function retracing notices
+
+CIFAR_CLASSES = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
+
+
+def read_cifar_tar(path):
+    def batch(member):
+        d = pickle.load(tar.extractfile(member), encoding="bytes")
+        return d[b"data"].reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1), np.array(d[b"labels"])
+    with tarfile.open(path) as tar:
+        names = sorted(m for m in tar.getnames() if "_batch" in m)
+        train = [batch(n) for n in names if "data_batch" in n]
+        X_te, y_te = batch(next(n for n in names if "test_batch" in n))
+    return (np.concatenate([a for a, _ in train]), np.concatenate([b for _, b in train])), (X_te, y_te)
+
+
+def make_stand_in(n_train=600, n_test=150, seed=0):
+    """Ten classes of 32x32 colour shapes with random colour, position, size and noise."""
+    g = np.random.default_rng(seed)
+    yy, xx = np.mgrid[0:32, 0:32]
+    names = ["disc", "square", "triangle", "cross", "ring",
+             "h-stripes", "v-stripes", "diagonal", "checker", "dots"]
+    def draw(c):
+        cx, cy, r = g.uniform(9, 23), g.uniform(9, 23), g.uniform(4, 9)
+        dx, dy, s = xx - cx, yy - cy, g.integers(3, 6)
+        mask = [dx**2 + dy**2 < r**2, (abs(dx) < r * .8) & (abs(dy) < r * .8),
+                (dy > -r) & (dy < r) & (abs(dx) < (dy + r) / 2),
+                (abs(dx) < r / 3.5) | (abs(dy) < r / 3.5),
+                abs(np.hypot(dx, dy) - r) < 1.5,
+                (yy // s) % 2 == 0, (xx // s) % 2 == 0, ((xx + yy) // s) % 2 == 0,
+                ((xx // s) + (yy // s)) % 2 == 0, ((xx % (2 * s)) < 2) & ((yy % (2 * s)) < 2)][c]
+        im = np.ones((32, 32, 3)) * g.uniform(0, 1, 3)          # random background colour
+        im[mask] = g.uniform(0, 1, 3)                            # random (sometimes low-contrast) shape colour
+        return (np.clip(im + g.normal(0, 0.3, im.shape), 0, 1) * 255).astype(np.uint8)
+    def split(n):
+        y = np.repeat(np.arange(10), n); g.shuffle(y)
+        return np.stack([draw(c) for c in y]), y
+    return split(n_train), split(n_test), names
+
+
+def load_cifar10():
+    archive = DATA / "cifar-10-python.tar.gz"
+    if archive.exists():
+        return read_cifar_tar(archive), CIFAR_CLASSES, True
+    try:
+        (X_tr, y_tr), (X_te, y_te) = keras.datasets.cifar10.load_data()
+        return ((X_tr, y_tr.ravel()), (X_te, y_te.ravel())), CIFAR_CLASSES, True
+    except Exception as exc:
+        print(f"CIFAR-10 unavailable ({type(exc).__name__}); using a synthetic stand-in of 32x32 shapes.")
+        train, test, names = make_stand_in()
+        return (train, test), names, False
+
+
+((X_train, y_train), (X_test, y_test)), class_names, real_cifar = load_cifar10()
+print("train", X_train.shape, X_train.dtype, "| test", X_test.shape)
+print("images per class:", np.bincount(y_train)[:5], "...")
+```
+
+Output:
+
+```text
+Downloading data from https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
+CIFAR-10 unavailable (Exception); using a synthetic stand-in of 32x32 shapes.
+train (6000, 32, 32, 3) uint8 | test (1500, 32, 32, 3)
+images per class: [600 600 600 600 600] ...
+```
+
+In the environment where I generated these outputs, the download was blocked, so the results below come from the
+synthetic stand-in: 6,000 noisy training images of ten shape and texture classes, with random colours that are
+sometimes barely distinguishable from the background. With the real data, the same cells run unchanged; expect
+roughly 70–75% test accuracy from this architecture after 10–20 epochs, and a few minutes per epoch on a CPU.
+
+```python
+fig, axes = plt.subplots(3, 6, figsize=(9, 4.8))
+for ax, i in zip(axes.ravel(), rng.choice(len(X_train), 18, replace=False)):
+    ax.imshow(X_train[i]); ax.set_title(class_names[y_train[i]], fontsize=9); ax.axis("off")
+plt.tight_layout(); plt.show()
+```
+
+![Loading the Images](images/loading-the-images-1.png)
+
+<a id="preparing-images-and-labels"></a>
+
+### Preparing Images and Labels
+
+Two transformations:
+
+- **Pixels to [0, 1]**: convert `uint8` to `float32` and divide by 255. Gradient descent behaves much better on small
+  inputs.
+- **Labels**: integer labels `0..9` work directly with the `sparse_categorical_crossentropy` loss. The alternative is
+  one-hot encoding with `keras.utils.to_categorical` and plain `categorical_crossentropy`; the result is identical, the
+  sparse form just saves memory.
+
+```python
+X_train_f = X_train.astype("float32") / 255
+X_test_f = X_test.astype("float32") / 255
+input_shape = X_train_f.shape[1:]
+
+print("input shape:", input_shape, "| pixel range:", X_train_f.min(), "to", X_train_f.max())
+print("one-hot example:", y_train[0], "->", keras.utils.to_categorical(y_train[:1], 10)[0])
+```
+
+Output:
+
+```text
+input shape: (32, 32, 3) | pixel range: 0.0 to 1.0
+one-hot example: 7 -> [0. 0. 0. 0. 0. 0. 0. 1. 0. 0.]
+```
+
+<a id="building-and-training-the-cnn"></a>
+
+### Building and Training the CNN
+
+The architecture is the classic VGG-style pattern: two 3×3 convolutions, pooling, dropout, then the same block with
+twice the filters, then dense layers. I've halved the filter counts and dense width from the common 64/128/1024 version
+so it trains in reasonable time on a CPU; the shape of the network is the same.
+
+**Watch out:** older code passes `lr=0.001` to optimizers and uses lowercase `keras.optimizers.rmsprop`. In Keras 3
+it's `keras.optimizers.RMSprop(learning_rate=0.001)`.
+
+```python
+def build_cnn(input_shape, n_classes, augmentation=None):
+    model = keras.Sequential([keras.Input(shape=input_shape)])
+    if augmentation is not None:
+        model.add(augmentation)                       # active only during training
+    for filters in (32, 64):
+        model.add(layers.Conv2D(filters, (3, 3), activation="relu", padding="same"))
+        model.add(layers.Conv2D(filters, (3, 3), activation="relu"))
+        model.add(layers.MaxPooling2D((2, 2)))
+        model.add(layers.Dropout(0.3))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(256, activation="relu"))
+    model.add(layers.Dropout(0.3))
+    model.add(layers.Dense(n_classes, activation="softmax"))
+    model.compile(optimizer=keras.optimizers.RMSprop(learning_rate=0.001),
+                  loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+    return model
+
+
+keras.utils.set_random_seed(42)
+cnn = build_cnn(input_shape, len(class_names))
+print(f"parameters: {cnn.count_params():,}")
+history = cnn.fit(X_train_f, y_train, batch_size=64, epochs=16,
+                  validation_split=0.1, shuffle=True, verbose=0)
+for e in (0, 7, 15):
+    print(f"epoch {e + 1}: accuracy {history.history['accuracy'][e]:.3f}, "
+          f"val_accuracy {history.history['val_accuracy'][e]:.3f}")
+```
+
+Output:
+
+```text
+parameters: 658,218
+epoch 1: accuracy 0.121, val_accuracy 0.162
+epoch 8: accuracy 0.662, val_accuracy 0.625
+epoch 16: accuracy 0.843, val_accuracy 0.748
+```
+
+<a id="evaluating-with-a-confusion-matrix"></a>
+
+### Evaluating with a Confusion Matrix
+
+Accuracy alone hides which classes get mixed up. A **confusion matrix** counts, for each true class (rows), how often
+each class was predicted (columns); the diagonal is the correct predictions.
+
+**Watch out:** `model.predict_classes()` was removed. Use `np.argmax(model.predict(X), axis=1)` for softmax outputs.
+
+```python
+from sklearn.metrics import confusion_matrix
+
+test_loss, test_acc = cnn.evaluate(X_test_f, y_test, verbose=0)
+predicted = np.argmax(cnn.predict(X_test_f, verbose=0), axis=1)
+print(f"test accuracy: {test_acc:.3f}")
+
+fig, axes = plt.subplots(3, 6, figsize=(9, 5))
+for ax, i in zip(axes.ravel(), range(18)):
+    ax.imshow(X_test[i]); ax.axis("off")
+    ok = predicted[i] == y_test[i]
+    ax.set_title(f"{class_names[predicted[i]]}\n(true {class_names[y_test[i]]})", fontsize=8,
+                 color="black" if ok else "crimson")
+plt.tight_layout(); plt.show()
+```
+
+Output:
+
+```text
+test accuracy: 0.760
+```
+
+![Evaluating with a Confusion Matrix](images/evaluating-with-a-confusion-matrix-1.png)
+
+```python
+cm = confusion_matrix(y_test, predicted)
+plt.figure(figsize=(6.5, 5.5))
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False,
+            xticklabels=class_names, yticklabels=class_names)
+plt.xlabel("predicted"); plt.ylabel("true"); plt.title("Confusion matrix (test set)")
+plt.tight_layout(); plt.show()
+```
+
+![Evaluating with a Confusion Matrix](images/evaluating-with-a-confusion-matrix-2.png)
+
+<a id="saving-and-reloading-the-model"></a>
+
+### Saving and Reloading the Model
+
+A trained model is architecture plus weights plus optimizer state. Save it in the native `.keras` format, which is a
+single zip file; reloading gives back a model that predicts identically and can continue training.
+
+**Watch out:** the old `.h5` (HDF5) format still loads but is legacy in Keras 3. Use `.keras` for new models.
+
+```python
+path = MODELS / "cifar10-cnn.keras"
+cnn.save(path)
+reloaded = keras.models.load_model(path)
+same = np.allclose(reloaded.predict(X_test_f[:50], verbose=0), cnn.predict(X_test_f[:50], verbose=0))
+print(path, f"{path.stat().st_size / 1e6:.1f} MB | identical predictions after reload: {same}")
+```
+
+Output:
+
+```text
+models/cifar10-cnn.keras 5.3 MB | identical predictions after reload: True
+```
+
+<a id="improving-generalisation-with-image-augmentation"></a>
+
+### Improving Generalisation with Image Augmentation
+
+Augmentation creates new training variations of the images we already have: flipped, rotated, shifted, zoomed, with
+changed contrast. The model never sees exactly the same image twice, so it has to learn what makes a class a class
+rather than memorising pixels. It's like giving a child many different views of the same object.
+
+In Keras 3 augmentation is done with preprocessing layers. Put them at the start of the model and they run on the fly,
+only during training.
+
+**Watch out:** `ImageDataGenerator`, `model.fit_generator()` and `scipy.misc.toimage` all appear in older tutorials. The
+first is deprecated, the other two are gone. Preprocessing layers plus a normal `model.fit()` replace them.
+
+Choose augmentations that keep the label true. Horizontal flips are fine for animals and vehicles; vertical flips and
+90° rotations produce upside-down cars and are usually harmful. For traffic signs, even horizontal flips are wrong:
+"turn left" becomes "turn right".
+
+```python
+augment = keras.Sequential([
+    layers.RandomFlip("horizontal"),
+    layers.RandomTranslation(0.1, 0.1),        # shift up to 10% in each direction
+    layers.RandomContrast(0.2),
+], name="augmentation")
+
+sample = X_train_f[:1]
+fig, axes = plt.subplots(1, 8, figsize=(11, 1.8))
+axes[0].imshow(sample[0]); axes[0].set_title("original", fontsize=9)
+for ax in axes[1:]:
+    ax.imshow(np.clip(augment(sample, training=True)[0], 0, 1))
+for ax in axes: ax.axis("off")
+plt.tight_layout(); plt.show()
+```
+
+![Improving Generalisation with Image Augmentation](images/improving-generalisation-with-image-augmentation-1.png)
+
+```python
+keras.utils.set_random_seed(42)
+cnn_aug = build_cnn(input_shape, len(class_names), augmentation=augment)
+cnn_aug.fit(X_train_f, y_train, batch_size=64, epochs=16, validation_split=0.1, verbose=0)
+_, aug_acc = cnn_aug.evaluate(X_test_f, y_test, verbose=0)
+print(f"test accuracy without augmentation: {test_acc:.3f} | with augmentation: {aug_acc:.3f}")
+cnn_aug.save(MODELS / "cifar10-cnn-augmented.keras")
+```
+
+Output:
+
+```text
+test accuracy without augmentation: 0.760 | with augmentation: 0.819
+```
+
+Augmentation lifts test accuracy by a few points here. Two things I learned getting there. First, augmentation needs
+more epochs to pay off, because every epoch is harder; after 8 epochs the augmented model was still behind. Second, my
+first version also used `RandomRotation(0.08)`, and accuracy dropped sharply: a 30° turn makes horizontal stripes look
+diagonal, so the augmentation was changing labels. For real CIFAR-10 photos, small rotations are safe and usually
+help; the rule is the same either way: only use transformations that keep the label true.
+
+**Cheatsheet: image classification with Keras**
+
+| Step | Code |
+|---|---|
+| Built-in dataset | `keras.datasets.cifar10.load_data()` |
+| Scale pixels | `X.astype("float32") / 255` |
+| Integer labels | `loss="sparse_categorical_crossentropy"` |
+| Conv block | `layers.Conv2D(32, (3, 3), activation="relu")`, `layers.MaxPooling2D((2, 2))`, `layers.Dropout(0.3)` |
+| Class predictions | `np.argmax(model.predict(X), axis=1)` |
+| Augmentation | `layers.RandomFlip`, `RandomTranslation`, `RandomRotation`, `RandomContrast` at the start of the model (label-preserving only) |
+| Save / load | `model.save("m.keras")`, `keras.models.load_model("m.keras")` |
+
+#### Exercise 13
+
+Add `layers.BatchNormalization()` after every `Conv2D` layer (you'll need a copy of `build_cnn`). Train for the same 16
+epochs and compare test accuracy with the plain model.
+
+#### Solution 13
+
+*Try it yourself before running this cell.*
+
+<details>
+<summary>Show solution</summary>
+
+```python
+def build_cnn_bn(input_shape, n_classes):
+    model = keras.Sequential([keras.Input(shape=input_shape)])
+    for filters in (32, 64):
+        for pad in ("same", "valid"):
+            model.add(layers.Conv2D(filters, (3, 3), activation="relu", padding=pad))
+            model.add(layers.BatchNormalization())
+        model.add(layers.MaxPooling2D((2, 2))); model.add(layers.Dropout(0.3))
+    model.add(layers.Flatten()); model.add(layers.Dense(256, activation="relu"))
+    model.add(layers.Dropout(0.3)); model.add(layers.Dense(n_classes, activation="softmax"))
+    model.compile(optimizer="rmsprop", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+    return model
+
+keras.utils.set_random_seed(42)
+cnn_bn = build_cnn_bn(input_shape, len(class_names))
+cnn_bn.fit(X_train_f, y_train, batch_size=64, epochs=16, validation_split=0.1, verbose=0)
+print(f"plain {test_acc:.3f} | batch norm {cnn_bn.evaluate(X_test_f, y_test, verbose=0)[1]:.3f}")
+```
+
+Output:
+
+```text
+plain 0.760 | batch norm 0.794
+```
+
+</details>
+
+<a id="21-project-recognising-traffic-signs-with-lenet"></a>
+
+## 21. Project: Recognising Traffic Signs with LeNet
+
+A self-driving car has to read traffic signs reliably. The German Traffic Sign Recognition Benchmark (GTSRB) has more
+than 50,000 photos of 43 sign types, cropped and resized to 32×32. We'll classify them with **LeNet-5**, one of the first
+successful CNNs (Yann LeCun's 1998 network for handwritten digits). It's tiny by modern standards, which makes it fast
+to train on a CPU, and it still does very well here.
+
+<a id="loading-the-pickled-splits"></a>
+
+### Loading the Pickled Splits
+
+The data comes as three pickled dictionaries, already split into training, validation and test sets. The 43 class
+names follow the benchmark's standard numbering.
+
+```python
+SIGN_NAMES = ["Speed limit 20", "Speed limit 30", "Speed limit 50", "Speed limit 60", "Speed limit 70",
+    "Speed limit 80", "End speed limit 80", "Speed limit 100", "Speed limit 120", "No passing",
+    "No passing >3.5t", "Right-of-way next intersection", "Priority road", "Yield", "Stop", "No vehicles",
+    "Vehicles >3.5t prohibited", "No entry", "General caution", "Dangerous curve left",
+    "Dangerous curve right", "Double curve", "Bumpy road", "Slippery road", "Road narrows right",
+    "Road work", "Traffic signals", "Pedestrians", "Children crossing", "Bicycles crossing",
+    "Beware ice/snow", "Wild animals crossing", "End all limits", "Turn right ahead", "Turn left ahead",
+    "Ahead only", "Straight or right", "Straight or left", "Keep right", "Keep left",
+    "Roundabout mandatory", "End no passing", "End no passing >3.5t"]
+
+SIGNS = DATA / "traffic-signs"
+if not (SIGNS / "train.p").exists():
+    raise FileNotFoundError("Put train.p, valid.p and test.p in data/traffic-signs/ (see Setup).")
+
+def load_split(name):
+    with open(SIGNS / f"{name}.p", "rb") as f:
+        d = pickle.load(f)
+    return d["features"], d["labels"]
+
+X_train, y_train = load_split("train")
+X_valid, y_valid = load_split("valid")
+X_test, y_test = load_split("test")
+print("train", X_train.shape, "| valid", X_valid.shape, "| test", X_test.shape, "| classes", len(np.unique(y_train)))
+```
+
+Output:
+
+```text
+train (34799, 32, 32, 3) | valid (4410, 32, 32, 3) | test (12630, 32, 32, 3) | classes 43
+```
+
+```python
+counts = np.bincount(y_train)
+print(f"most common: {SIGN_NAMES[counts.argmax()]} ({counts.max()}), "
+      f"rarest: {SIGN_NAMES[counts.argmin()]} ({counts.min()})")
+print("labels at positions 0, 5000, 10000, 20000:", y_train[[0, 5000, 10000, 20000]], "(the file is sorted by class)")
+
+plt.figure(figsize=(10, 2.8))
+plt.bar(range(43), counts, color="steelblue")
+plt.xlabel("class id"); plt.ylabel("training images"); plt.title("Class distribution"); plt.show()
+
+fig, axes = plt.subplots(2, 8, figsize=(11, 3.4))
+for ax, c in zip(axes.ravel(), range(0, 43, 43 // 16 + 0)):
+    ax.imshow(X_train[np.flatnonzero(y_train == c)[20]]); ax.axis("off")
+    ax.set_title(SIGN_NAMES[c][:15], fontsize=7)
+plt.tight_layout(); plt.show()
+```
+
+Output:
+
+```text
+most common: Speed limit 50 (2010), rarest: Speed limit 20 (180)
+labels at positions 0, 5000, 10000, 20000: [41 37  0 35] (the file is sorted by class)
+```
+
+![Loading the Pickled Splits](images/loading-the-pickled-splits-1.png)
+
+![Loading the Pickled Splits](images/loading-the-pickled-splits-2.png)
+
+Two things stand out. The classes are **imbalanced**: some signs have ten times more images than others, so a model can
+look accurate while neglecting rare signs. And the training file is **sorted by class**, so it must be shuffled before
+training. Keras shuffles each epoch by default, but if you take a validation split from the end of an unshuffled array
+you'd validate on only the last few classes.
+
+<a id="grayscale-and-normalisation"></a>
+
+### Grayscale and Normalisation
+
+Two preprocessing steps from the original LeNet experiments on this data:
+
+- **Grayscale**: averaging the three channels gives one channel. Sign shapes and symbols carry most of the information,
+  and the network has a third of the input to process.
+- **Normalisation**: `(pixel - 128) / 128` maps 0..255 to roughly −1..1, centred on zero, which speeds up training.
+
+```python
+from sklearn.utils import shuffle
+
+X_train, y_train = shuffle(X_train, y_train, random_state=42)
+
+def preprocess(X):
+    gray = X.mean(axis=3, keepdims=True)         # same as summing the channels / 3
+    return ((gray - 128) / 128).astype("float32")
+
+X_train_g, X_valid_g, X_test_g = preprocess(X_train), preprocess(X_valid), preprocess(X_test)
+print("shape", X_train_g.shape, "| range", X_train_g.min().round(2), "to", X_train_g.max().round(2))
+
+fig, axes = plt.subplots(2, 6, figsize=(9, 3.2))
+for k, i in enumerate(range(6)):
+    axes[0, k].imshow(X_train[i]); axes[0, k].set_title(SIGN_NAMES[y_train[i]][:16], fontsize=8)
+    axes[1, k].imshow(X_train_g[i].squeeze(), cmap="gray")
+for ax in axes.ravel(): ax.axis("off")
+plt.tight_layout(); plt.show()
+```
+
+Output:
+
+```text
+shape (34799, 32, 32, 1) | range -0.97 to 0.99
+```
+
+![Grayscale and Normalisation](images/grayscale-and-normalisation-1.png)
+
+<a id="the-lenet-5-architecture"></a>
+
+### The LeNet-5 Architecture
+
+LeNet alternates convolution and average pooling twice, then uses three dense layers:
+
+```mermaid
+flowchart LR
+    A["Input<br/>32×32×1"] --> B["Conv 6 @5×5<br/>→ 28×28×6"]
+    B --> C["AvgPool 2×2<br/>→ 14×14×6"]
+    C --> D["Conv 16 @5×5<br/>→ 10×10×16"]
+    D --> E["AvgPool 2×2<br/>→ 5×5×16"]
+    E --> F["Flatten<br/>400"]
+    F --> G["Dense 120"]
+    G --> H["Dense 84"]
+    H --> I["Softmax 43"]
+```
+
+Each 5×5 convolution without padding shrinks the map by 4 pixels; each pooling halves it. The whole network has about
+65,000 parameters, against hundreds of thousands for the CIFAR model.
+
+**Watch out:** older code uses `nb_epoch=`, `Adam(lr=...)` and reads `history.history['acc']`. In Keras 3 those are
+`epochs=`, `learning_rate=` and `'accuracy'`.
+
+```python
+keras.utils.set_random_seed(42)
+lenet = keras.Sequential([
+    keras.Input(shape=(32, 32, 1)),
+    layers.Conv2D(6, (5, 5), activation="relu"),
+    layers.AveragePooling2D((2, 2)),
+    layers.Conv2D(16, (5, 5), activation="relu"),
+    layers.AveragePooling2D((2, 2)),
+    layers.Flatten(),
+    layers.Dense(120, activation="relu"),
+    layers.Dense(84, activation="relu"),
+    layers.Dense(43, activation="softmax"),
+])
+lenet.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001),
+              loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+print(f"parameters: {lenet.count_params():,}")
+
+history = lenet.fit(X_train_g, y_train, batch_size=500, epochs=30,
+                    validation_data=(X_valid_g, y_valid), verbose=0)
+h = history.history
+print(f"after 30 epochs: train accuracy {h['accuracy'][-1]:.3f}, validation accuracy {h['val_accuracy'][-1]:.3f}")
+```
+
+Output:
+
+```text
+parameters: 64,511
+after 30 epochs: train accuracy 0.991, validation accuracy 0.848
+```
+
+```python
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 3.2))
+ax1.plot(h["accuracy"], "o", ms=3, label="training"); ax1.plot(h["val_accuracy"], label="validation")
+ax1.set_title("Accuracy"); ax1.set_xlabel("epoch"); ax1.legend()
+ax2.plot(h["loss"], "o", ms=3, label="training"); ax2.plot(h["val_loss"], label="validation")
+ax2.set_title("Loss"); ax2.set_xlabel("epoch"); ax2.legend()
+plt.tight_layout(); plt.show()
+```
+
+![The LeNet-5 Architecture](images/the-lenet-5-architecture-1.png)
+
+Training accuracy reaches 99% while validation accuracy levels off around 85%, and validation loss stops improving
+after the first few epochs: the network is overfitting. Part of the gap is also a distribution shift, because the
+validation and test photos come from different recording sessions than the training ones. That gap is what the exercise at the end of this section tackles.
+
+<a id="test-accuracy-and-the-classes-it-confuses"></a>
+
+### Test Accuracy and the Classes It Confuses
+
+With 43 classes, an annotated confusion matrix is unreadable, so we plot it as a heatmap and then list the most frequent
+mistakes. Per-class recall shows which signs the model struggles with.
+
+```python
+from sklearn.metrics import classification_report
+
+pred = np.argmax(lenet.predict(X_test_g, verbose=0), axis=1)
+print(f"test accuracy: {(pred == y_test).mean():.3f}")
+
+cm = confusion_matrix(y_test, pred)
+off = cm.copy(); np.fill_diagonal(off, 0)
+top = np.dstack(np.unravel_index(np.argsort(off.ravel())[::-1][:5], off.shape))[0]
+print("most common mistakes:")
+for t, p in top:
+    print(f"  {off[t, p]:3d} x  {SIGN_NAMES[t]}  ->  {SIGN_NAMES[p]}")
+```
+
+Output:
+
+```text
+test accuracy: 0.851
+most common mistakes:
+   84 x  Speed limit 80  ->  Speed limit 50
+   55 x  Speed limit 70  ->  Speed limit 30
+...
+```
+
+```python
+recall = cm.diagonal() / cm.sum(axis=1)
+worst = np.argsort(recall)[:5]
+print("lowest recall:", ", ".join(f"{SIGN_NAMES[c]} {recall[c]:.2f}" for c in worst))
+
+plt.figure(figsize=(6, 5.2))
+sns.heatmap(np.log1p(cm), cmap="Blues", cbar=False, square=True, xticklabels=6, yticklabels=6)
+plt.title("Confusion matrix (log counts)"); plt.xlabel("predicted"); plt.ylabel("true"); plt.show()
+
+fig, axes = plt.subplots(2, 8, figsize=(11, 3.4))
+for ax, i in zip(axes.ravel(), rng.choice(len(X_test), 16, replace=False)):
+    ax.imshow(X_test[i]); ax.axis("off")
+    ax.set_title(SIGN_NAMES[pred[i]][:15], fontsize=7, color="black" if pred[i] == y_test[i] else "crimson")
+plt.suptitle("Test predictions (red = wrong)", fontsize=10); plt.tight_layout(); plt.show()
+```
+
+Output:
+
+```text
+lowest recall: Speed limit 20 0.23, Double curve 0.36, Road narrows right 0.49, Pedestrians 0.50, Dangerous curve left 0.57
+```
+
+![Test Accuracy and the Classes It Confuses](images/test-accuracy-and-the-classes-it-confuses-1.png)
+
+![Test Accuracy and the Classes It Confuses](images/test-accuracy-and-the-classes-it-confuses-2.png)
+
+The mistakes are the ones a person would expect: speed limits confused with other speed limits (the digits are small at
+32×32), and warning triangles with similar pictograms mixed up with each other.
+
+**Cheatsheet: small CNNs and LeNet**
+
+| Step | Code |
+|---|---|
+| Shuffle sorted data | `X, y = sklearn.utils.shuffle(X, y)` |
+| Grayscale | `X.mean(axis=3, keepdims=True)` |
+| Centre and scale | `(X - 128) / 128` |
+| Separate validation set | `model.fit(..., validation_data=(X_val, y_val))` |
+| Largest errors | zero the confusion matrix diagonal, then `np.argsort` |
+| Per-class recall | `cm.diagonal() / cm.sum(axis=1)` |
+
+#### Exercise 14
+
+Reduce LeNet's overfitting. Add `layers.Dropout(0.3)` after each of the two hidden dense layers, train for 30 epochs
+with the same settings, and compare validation and test accuracy with the original.
+
+#### Solution 14
+
+*Try it yourself before running this cell.*
+
+<details>
+<summary>Show solution</summary>
+
+```python
+keras.utils.set_random_seed(42)
+lenet_drop = keras.Sequential([
+    keras.Input(shape=(32, 32, 1)),
+    layers.Conv2D(6, (5, 5), activation="relu"), layers.AveragePooling2D((2, 2)),
+    layers.Conv2D(16, (5, 5), activation="relu"), layers.AveragePooling2D((2, 2)),
+    layers.Flatten(),
+    layers.Dense(120, activation="relu"), layers.Dropout(0.3),
+    layers.Dense(84, activation="relu"), layers.Dropout(0.3),
+    layers.Dense(43, activation="softmax"),
+])
+lenet_drop.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+hd = lenet_drop.fit(X_train_g, y_train, batch_size=500, epochs=30,
+                    validation_data=(X_valid_g, y_valid), verbose=0).history
+acc = (np.argmax(lenet_drop.predict(X_test_g, verbose=0), axis=1) == y_test).mean()
+print(f"validation {hd['val_accuracy'][-1]:.3f} (was {h['val_accuracy'][-1]:.3f}) | "
+      f"test {acc:.3f} (was {(pred == y_test).mean():.3f})")
+```
+
+Output:
+
+```text
+validation 0.931 (was 0.848) | test 0.913 (was 0.851)
+```
+
+</details>
+
+<a id="22-project-recognising-dog-breeds-with-transfer-learning"></a>
+
+## 22. Project: Recognising Dog Breeds with Transfer Learning
+
+The capstone: a classifier for 120 dog breeds from real photos. The CNNs in the last two projects were trained from
+scratch on tiny 32×32 images. Photos are larger and more varied, and training a network from scratch for them takes
+far more data and compute than we have. **Transfer learning** borrows a network someone else already trained.
 
 <a id="neural-networks-tensorflow-and-transfer-learning"></a>
 
 ### Neural Networks, TensorFlow and Transfer Learning
 
-Deep learning (multi-layer neural networks) is still "finding patterns in data", but the network learns its own features,
-from edges to textures to shapes, instead of relying on hand-made columns. **TensorFlow** is Google's open-source library
+Neural networks need a numerical library built for speed. **TensorFlow** is Google's open-source library
 for fast numerical computing on GPUs and TPUs, and **Keras** is its high-level API. Since Keras 3, Keras can also run on JAX
 or PyTorch.
 
@@ -2962,12 +5643,11 @@ ImageNet weights unavailable ( Exception ) - using untrained weights for a dry r
 
 ### Training with Callbacks
 
-**Callbacks** run during training. **TensorBoard** logs metrics so you can watch the curves (`%load_ext tensorboard`, then
-`%tensorboard --logdir logs`). **EarlyStopping** halts training when the validation metric stops improving and restores
-the best weights, which is a cheap guard against overfitting.
+**Callbacks** run during training. **EarlyStopping** (used in the car-purchase exercise) halts training when the
+validation metric stops improving and restores the best weights. **TensorBoard** logs metrics so you can watch the
+curves live (`%load_ext tensorboard`, then `%tensorboard --logdir logs`).
 
-An **epoch** is one pass over the training data. Start with a small subset so you know the pipeline works before you spend
-GPU time. Then watch for the overfitting signature: training accuracy racing ahead while validation accuracy stalls.
+Start with a small subset so you know the pipeline works before you spend GPU time.
 
 ```python
 import datetime
@@ -2987,9 +5667,9 @@ Output:
 
 ```text
 Epoch 1/2
-5/5 - 11s - 2s/step - accuracy: 0.3438 - loss: 1.6066 - val_accuracy: 0.6000 - val_loss: 1.5995
+5/5 - 16s - 3s/step - accuracy: 0.1875 - loss: 1.6101 - val_accuracy: 0.1250 - val_loss: 1.6100
 Epoch 2/2
-5/5 - 2s - 472ms/step - accuracy: 0.5312 - loss: 1.5954 - val_accuracy: 0.6000 - val_loss: 1.5892
+5/5 - 3s - 640ms/step - accuracy: 0.2188 - loss: 1.6056 - val_accuracy: 0.1250 - val_loss: 1.6089
 ```
 
 ![Training with Callbacks](images/training-with-callbacks-1.png)
@@ -3020,8 +5700,8 @@ Output:
 
 ```text
 probabilities shape: (40, 5)
-first image: predicted whippet (0.20) | actual whippet
-validation accuracy: 0.6
+first image: predicted beagle (0.20) | actual whippet
+validation accuracy: 0.125
 ```
 
 Visualizing predictions makes them understandable to anyone. The cell shows each image with its predicted label and
@@ -3059,8 +5739,8 @@ Output:
 ```text
 accuracy per class:
  boxer      0.0
+collie     0.0
 pug        0.0
-beagle     1.0
 ...
 ```
 
@@ -3072,8 +5752,8 @@ beagle     1.0
 
 ### Saving, Loading and Predicting on New Images
 
-Save the trained model in Keras 3's single-file `.keras` format, then reload it and confirm it produces identical
-predictions. (The older `.h5` format is legacy.)
+Saving works exactly as for the [CIFAR-10 model](#saving-and-reloading-the-model): one `.keras` file, reloaded and
+checked for identical predictions. Then the real test, photos the model has never seen.
 
 ```python
 import tensorflow as tf
@@ -3107,9 +5787,9 @@ Output:
 
 ```text
         id  beagle  boxer  collie    pug  whippet
-0  image_0   0.197  0.196   0.199  0.203    0.205
-1  image_1   0.198  0.198   0.201  0.202    0.203
-2  image_2   0.197  0.196   0.199  0.203    0.205
+0  image_0   0.205  0.199   0.202  0.198    0.196
+1  image_1   0.206  0.199   0.203  0.198    0.195
+2  image_2   0.205  0.199   0.202  0.198    0.196
 ```
 
 The final test is your own photos. Load each file, resize it to the model's input size, stack the images into a batch, and
@@ -3137,20 +5817,20 @@ for path, probs in zip(custom_paths, custom_preds):
 Output:
 
 ```text
-beagle.jpeg              -> pug (20%)
-golden-retriever.jpeg    -> pug (20%)
-person-not-a-dog.jpeg    -> pug (20%)
-siberian-husky.jpeg      -> pug (20%)
+beagle.jpeg              -> beagle (20%)
+golden-retriever.jpeg    -> beagle (20%)
+person-not-a-dog.jpeg    -> beagle (20%)
+siberian-husky.jpeg      -> beagle (20%)
 ```
 
 ![Saving, Loading and Predicting on New Images](images/saving-loading-and-predicting-on-new-images-1.png)
 
-#### Exercise 6
+#### Exercise 15
 
 Add **data augmentation** (random horizontal flips, small rotations and zoom) that applies only during training. Put an
 augmentation block in front of the base model, rebuild, and train for the same number of epochs.
 
-#### Solution 6
+#### Solution 15
 
 *Try it yourself before running this cell.*
 
@@ -3182,7 +5862,7 @@ Output:
 Downloading data from https://storage.googleapis.com/tensorflow/keras-applications/efficientnet_v2/efficientnetv2-b0_notop.h5
 ImageNet weights unavailable ( Exception ) - using untrained weights for a dry run.
 Epoch 1/2
-5/5 - 12s - 2s/step - accuracy: 0.2313 - loss: 1.6081 - val_accuracy: 0.3000 - val_loss: 1.6032
+5/5 - 15s - 3s/step - accuracy: 0.2313 - loss: 1.6017 - val_accuracy: 0.1250 - val_loss: 1.5976
 ...
 ```
 
@@ -3216,6 +5896,8 @@ model.predict(ds).argmax(axis=1); model.save("model.keras"); tf.keras.models.loa
 
 ## Reference
 
+Everything from the whole post in one place.
+
 <a id="master-cheatsheet"></a>
 
 ### Master Cheatsheet
@@ -3227,26 +5909,45 @@ model.predict(ds).argmax(axis=1); model.save("model.keras"); tf.keras.models.loa
 df = pd.read_csv(path, parse_dates=["date"], low_memory=False)
 df.info(); df.describe(); df.isna().sum(); df["col"].value_counts(); pd.crosstab(df.a, df.b)
 df["col"] = df["col"].fillna(df["col"].median()); df = df.dropna(subset=["target"])
+monthly = df.set_index("date")["value"].resample("MS").sum()          # "ME", "QE", "YE" for period ends
 # NumPy
 rng = np.random.default_rng(42); a.shape; a.reshape(-1, 1); a @ b; a.mean(axis=0); a.argmax(axis=1)
 # Matplotlib
 fig, ax = plt.subplots(figsize=(10, 6)); ax.scatter(x, y, c=labels); ax.set(title="...", xlabel="...")
 # scikit-learn
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 pipe = Pipeline([("prep", ColumnTransformer([...])), ("model", RandomForestClassifier())]).fit(X_train, y_train)
 cross_val_score(pipe, X, y, cv=5, scoring="f1"); classification_report(y_test, pipe.predict(X_test))
 RandomizedSearchCV(pipe, {"model__n_estimators": [100, 200]}, n_iter=10, cv=5); dump(pipe, "model.joblib")
+# Text
+text_clf = make_pipeline(CountVectorizer(analyzer=clean_text), MultinomialNB())     # or TfidfVectorizer, ComplementNB
+# Recommender
+matrix = ratings.pivot_table(index="user_id", columns="title", values="rating"); matrix.corr(min_periods=80)
+# Prophet
+m = Prophet(yearly_seasonality=5).fit(df[["ds", "y"]]); fc = m.predict(m.make_future_dataframe(24, freq="MS"))
 # Keras
-base = tf.keras.applications.EfficientNetV2B0(include_top=False, pooling="avg"); base.trainable = False
-model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+model = keras.Sequential([keras.Input((32, 32, 3)), layers.Conv2D(32, 3, activation="relu"),
+                          layers.MaxPooling2D((2, 2)), layers.Flatten(), layers.Dense(10, activation="softmax")])
+model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+model.fit(X, y, validation_split=0.1, callbacks=[keras.callbacks.EarlyStopping(restore_best_weights=True)])
+np.argmax(model.predict(X), axis=1); model.save("m.keras"); keras.models.load_model("m.keras")
+base = keras.applications.EfficientNetV2B0(include_top=False, pooling="avg"); base.trainable = False
 ```
 
 | Problem | Start with | Metric |
 |---|---|---|
 | Tabular classification | logistic regression, random forest, gradient boosting | accuracy, precision / recall / F1, ROC AUC |
-| Tabular regression | ridge, random forest, `HistGradientBoostingRegressor` | MAE, RMSE, R², RMSLE |
+| Tabular regression | linear model first, then random forest, `HistGradientBoostingRegressor` | MAE, RMSE, R², RMSLE |
 | Time-ordered data | the same, plus date features and a time-based split | as above |
-| Images, text, audio | transfer learning with a pretrained network | accuracy, top-k accuracy |
+| Forecasting one series | Prophet, against a last-value baseline | MAPE, MAE on a holdout period |
+| Short text | bag of words + Naive Bayes | precision / recall per class, balanced accuracy |
+| Recommendations | item-item correlation with a minimum overlap | hit rate on held-out ratings |
+| Small images | a small CNN with dropout and augmentation | accuracy, confusion matrix |
+| Photos, text, audio | transfer learning with a pretrained network | accuracy, top-k accuracy |
+
+<a id="old-api-to-current-api"></a>
+
+### Old API to Current API
 
 | Old code | Current replacement |
 |---|---|
@@ -3254,9 +5955,21 @@ model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accur
 | `plot_roc_curve`, `plot_confusion_matrix` | `RocCurveDisplay`, `ConfusionMatrixDisplay` |
 | `max_features="auto"` | `"sqrt"` or `1.0` |
 | `mean_squared_log_error(..., squared=False)` | `root_mean_squared_log_error` |
-| `df.append(other)` | `pd.concat([df, other])` |
+| `vectorizer.get_feature_names()` | `vectorizer.get_feature_names_out()` |
+| `df.append(other)`, `series.append(other)` | `pd.concat([df, other])` |
+| `pd.read_csv(..., error_bad_lines=False)` | `pd.read_csv(..., on_bad_lines="skip")` |
+| `resample("Y")`, `("M")`, `("Q")` | `resample("YE")`, `("ME")`, `("QE")` |
 | `plt.style.use("seaborn")` | `plt.style.use("seaborn-v0_8")` |
-| `hub.KerasLayer(...)`, `.h5` files | `tf.keras.applications`, `.keras` files |
+| `sns.countplot(df["col"])` | `sns.countplot(x=df["col"])` |
+| `from fbprophet import Prophet` | `from prophet import Prophet` |
+| `Dense(25, input_dim=5)` | `keras.Input(shape=(5,))` then `Dense(25)` |
+| `model.predict_classes(X)` | `np.argmax(model.predict(X), axis=1)` |
+| `model.fit_generator(gen, ...)` | `model.fit(dataset_or_arrays, ...)` |
+| `ImageDataGenerator(...)` | `layers.RandomFlip`, `layers.RandomRotation`, … inside the model |
+| `Adam(lr=0.001)`, `nb_epoch=50` | `Adam(learning_rate=0.001)`, `epochs=50` |
+| `history.history["acc"]` | `history.history["accuracy"]` |
+| `scipy.misc.toimage(x)` | `plt.imshow(x)` or `keras.utils.array_to_img(x)` |
+| `hub.KerasLayer(...)`, `.h5` files | `keras.applications`, `.keras` files |
 
 <a id="glossary"></a>
 
@@ -3265,26 +5978,43 @@ model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accur
 | Term | Meaning |
 |---|---|
 | **Accuracy** | share of predictions that are correct |
+| **Activation function** | non-linear function applied to a neuron's weighted sum (ReLU, sigmoid, softmax) |
+| **Augmentation** | random label-preserving changes to training images to improve generalisation |
 | **AUC / ROC curve** | area under / plot of true-positive vs false-positive rate across thresholds |
+| **Backpropagation** | chain-rule computation of the loss gradient for every weight |
+| **Bag of words** | document represented by word counts, ignoring order |
 | **Batch** | group of samples processed together in one training step |
+| **Bayes' theorem** | posterior = likelihood × prior / marginal likelihood |
 | **Callback** | function Keras runs during training (early stopping, logging) |
+| **Changepoint** | date where Prophet allows the trend's slope to change |
 | **Classification / regression** | predicting a category / a number |
-| **Confusion matrix** | table of true vs predicted labels |
+| **Collaborative filtering** | recommending from the ratings matrix alone, via similar users or items |
+| **Confusion matrix** | table of true classes (rows) against predicted classes (columns) |
+| **Convolution** | sliding a small kernel over an image to produce a feature map |
 | **Cross-validation** | evaluating on several train/test splits and averaging |
+| **Dropout** | randomly disabling neurons during training to reduce overfitting |
 | **Epoch** | one full pass over the training data |
 | **Estimator** | scikit-learn's word for a model |
 | **Feature / target** | input variable / what you predict |
 | **Feature engineering** | creating new features from existing data |
+| **Feature map** | output of one convolution filter: where its pattern appears |
 | **Gradient descent** | adjusting parameters step by step in the direction that reduces the loss |
 | **Hyperparameter** | a setting you choose before training |
 | **Imputation** | filling missing values |
+| **Learning rate** | size of each gradient descent step |
+| **MAPE** | mean absolute percentage error |
 | **One-hot encoding** | one 0/1 column per category |
 | **Overfitting / underfitting** | memorizing the training data / failing to learn its patterns |
 | **Pipeline** | preprocessing steps and a model fitted as one object |
+| **Pooling** | downsampling a feature map by taking the max or mean of small blocks |
 | **Precision / recall / F1** | correctness of positive predictions / coverage of actual positives / their harmonic mean |
+| **Prior / likelihood / posterior** | class probability before the data / probability of the data given a class / class probability after it |
 | **R², MAE, RMSE, RMSLE** | variance explained, mean absolute error, root mean squared (log) error |
+| **Seasonality** | a pattern that repeats on a fixed cycle (yearly, weekly) |
 | **Softmax** | turns outputs into probabilities that sum to 1 |
+| **Stop words** | very common words removed before counting |
 | **Tensor** | multi-dimensional array that can run on a GPU |
+| **TF-IDF** | term frequency weighted by how rare the term is across documents |
 | **Train / validation / test set** | data to learn from / to tune on / for the final evaluation |
 | **Transfer learning** | reusing a model trained on one problem for another |
 
@@ -3293,15 +6023,25 @@ model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accur
 ### Further Reading
 
 - [Data Preparation for Machine Learning reference](https://github.com/rokon-uddin/data-preparation-reference), my
-  deep dive on cleaning, feature selection and transforms
+  deep dive on cleaning, feature selection, transforms, pipelines and leakage
 - [pandas user guide](https://pandas.pydata.org/docs/user_guide/index.html) ·
   [NumPy user guide](https://numpy.org/doc/stable/user/index.html) ·
   [Matplotlib quick start](https://matplotlib.org/stable/users/explain/quick_start.html)
 - [scikit-learn user guide](https://scikit-learn.org/stable/user_guide.html) ·
   [choosing the right estimator](https://scikit-learn.org/stable/machine_learning_map.html) ·
-  [model evaluation](https://scikit-learn.org/stable/modules/model_evaluation.html)
-- [TensorFlow transfer-learning tutorial](https://www.tensorflow.org/tutorials/images/transfer_learning) ·
-  [Keras applications](https://keras.io/api/applications/)
+  [model evaluation](https://scikit-learn.org/stable/modules/model_evaluation.html) ·
+  [working with text data](https://scikit-learn.org/stable/modules/feature_extraction.html#text-feature-extraction) ·
+  [Naive Bayes](https://scikit-learn.org/stable/modules/naive_bayes.html)
+- [Prophet documentation](https://facebook.github.io/prophet/) and the paper *Forecasting at Scale* (Taylor and
+  Letham, 2017)
+- [Keras developer guides](https://keras.io/guides/) · [Keras applications](https://keras.io/api/applications/) ·
+  [TensorFlow transfer-learning tutorial](https://www.tensorflow.org/tutorials/images/transfer_learning)
+- [Gradient-based learning applied to document recognition](http://yann.lecun.com/exdb/publis/pdf/lecun-01a.pdf),
+  the LeNet paper
 - Datasets: [UCI Heart Disease](https://archive.ics.uci.edu/dataset/45/heart+disease) ·
   [Blue Book for Bulldozers](https://www.kaggle.com/c/bluebook-for-bulldozers) ·
+  [Chicago Data Portal](https://data.cityofchicago.org/) ·
+  [MovieLens](https://grouplens.org/datasets/movielens/) ·
+  [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) ·
+  [GTSRB](https://benchmark.ini.rub.de/gtsrb_news.html) ·
   [Stanford Dogs](http://vision.stanford.edu/aditya86/ImageNetDogs/)
